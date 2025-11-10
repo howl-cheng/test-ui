@@ -1,0 +1,15 @@
+{
+  "name": "hny-ui",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.18.2",
+  "scripts": {
+    "build": "pnpm --filter './packages...' run build",
+    "dev:docs": "cd docs && pnpm dev",
+    "dev:examples": "cd examples && pnpm dev"
+  },
+  "workspaces": [
+    "packages/*",
+    "examples"
+  ]
+}

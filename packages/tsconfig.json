@@ -1,0 +1,41 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    // 继承根配置，但针对组件库进行优化
+    "declaration": true,                    // 生成 .d.ts 类型声明文件
+    "declarationMap": true,                 // 生成声明文件的 source map
+    "sourceMap": true,                      // 生成源码映射
+    "outDir": "dist",                       // 输出目录
+    "rootDir": ".",                         // 根目录
+    "composite": true,                      // 启用项目引用支持
+    "incremental": true,                    // 启用增量编译
+    
+    // 组件库特定的路径映射
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@/components/*": ["./components/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/utils/*": ["./utils/*"],
+      "@/styles/*": ["./styles/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.vue",
+    "**/*.tsx",
+    "**/*.jsx",
+    "components/**/*",
+    "hooks/**/*",
+    "utils/**/*",
+    "styles/**/*",
+    "index.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "vite.config.ts"
+  ]
+}

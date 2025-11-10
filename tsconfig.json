@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    // 基础设置
+    "target": "ESNext",                          // 目标 JS 版本（支持最新特性）
+    "module": "ESNext",                          // 模块系统（与 ESM 一致）
+    "moduleResolution": "bundler",               // 模块解析方式（适配 bundler 如 vite/rollup）
+    "resolveJsonModule": true,                   // 支持导入 JSON
+    "isolatedModules": true,                     // 确保每个文件可被独立转译（vite 要求）
+    "esModuleInterop": true,                     // 兼容 CommonJS 模块
+    "allowSyntheticDefaultImports": true,         // 允许合成默认导入
+    "forceConsistentCasingInFileNames": true,    // 强制文件名大小写一致
+    "types": ["node"],                           // 包含 Node.js 类型定义
+
+    // 类型检查（严格模式）
+    "strict": true,                              // 开启所有严格检查选项
+    "noImplicitAny": true,                       // 禁止隐式 any 类型
+    "strictNullChecks": true,                    // 严格 null 检查
+    "noUnusedLocals": true,                      // 检测未使用的局部变量
+    "noUnusedParameters": true,                  // 检测未使用的函数参数
+    "noFallthroughCasesInSwitch": true,          // 禁止 switch 穿透
+
+    // 输出配置（根目录可能不输出，子包继承后配置）
+    "declaration": false,                        // 子包继承后开启（生成 .d.ts）
+    "sourceMap": false,                          // 子包继承后开启（生成源码映射）
+    "outDir": ""                                 // 子包继承后指定输出目录
+  },
+  "exclude": ["node_modules", "dist", "**/*/*.test.ts"]
+}

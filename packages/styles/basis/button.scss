@@ -1,0 +1,42 @@
+.h-button {
+  box-sizing: border-box;
+  min-width: 80px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 36px;
+  cursor: pointer;
+  background-color: #c6c7d3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  &--default {
+    background-color: #c6c7d3;
+  }
+  &--primary {
+    background-color: #676ba5;
+  }
+  &--success {
+    background-color: #67a567;
+  }
+  &--error {
+    background-color: #a5676a;
+  }
+  &--warning {
+    background-color: #98a567;
+  }
+
+  &--small {
+    min-width: 60px;
+    height: 28px;
+  }
+  &--medium {
+    min-width: 80px;
+    height: 32px;
+  }
+  &--large {
+    min-width: 100px;
+    height: 36px;
+  }
+}
