@@ -82,6 +82,7 @@ export default defineConfig({
         'components/index': resolve(__dirname, 'components/index.ts'),
         'hooks/index': resolve(__dirname, 'hooks/index.ts'),
         'utils/index': resolve(__dirname, 'utils/index.ts'),
+        'directive/index': resolve(__dirname, 'directive/index.ts'),
       },
       name: 'hnyUi',
       fileName: (format, entryName) => {

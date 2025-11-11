@@ -38,11 +38,11 @@
 }
 
 // element-plus 样式
-.el-form {
+.h-b-page__form {
   .el-select {
-    width: 200px;
+    min-width: 200px;
   }
   .el-input {
-    width: 200px;
+    min-width: 200px;
   }
 }

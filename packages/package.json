@@ -1,6 +1,6 @@
 {
   "name": "hny-ui",
-  "version": "1.0.9",
+  "version": "1.1.1",
   "description": "hny-ui 统一组件库 - 基于 Vue 3 的现代化组件库",
   "private": false,
   "type": "module",
@@ -17,6 +17,11 @@
       "import": "./dist/components/index.mjs",
       "require": "./dist/components/index.cjs",
       "types": "./dist/components/index.d.ts"
+    },
+    "./directive": {
+      "import": "./dist/directive/index.mjs",
+      "require": "./dist/directive/index.cjs",
+      "types": "./dist/directive/index.d.ts"
     },
     "./hooks": {
       "import": "./dist/hooks/index.mjs",

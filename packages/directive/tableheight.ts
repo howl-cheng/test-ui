@@ -59,4 +59,3 @@ const resizeH = {
 }
 
 export { resizeH }
-export default resizeH

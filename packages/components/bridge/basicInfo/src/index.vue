@@ -1,7 +1,7 @@
 <template>
   <div :class="ns.b()">
     <div :class="ns.b('header')">
-      <el-form ref="queryRef" :model="queryParams" :inline="true">
+      <el-form :class="ns.e('form')" ref="queryRef" :model="queryParams" :inline="true">
         <el-form-item label="桥梁名称" prop="bridgeName">
           <el-input v-model="queryParams.bridgeName" placeholder="请输入桥梁名称" clearable/>
         </el-form-item>
@@ -56,8 +56,8 @@
         <el-descriptions-item label="桥梁长度">{{ rowData?.bridgeLength }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
-    <el-dialog v-model="addVisible" title="新增桥梁">
-      <el-form ref="addFormRef" :model="addFormData" :inline="true" :rules="addFormRules">
+    <el-dialog v-model="addVisible" title="新增桥梁" width="40%">
+      <el-form :class="ns.e('form')" ref="addFormRef" :model="addFormData" :inline="true" :rules="addFormRules" label-width="auto">
         <el-form-item label="桥梁名称" prop="bridgeName"> 
           <el-input v-model="addFormData.bridgeName" placeholder="请输入桥梁名称" />
         </el-form-item>
