@@ -1,9 +1,7 @@
 <template>
     <div class="box" style="width: 100%; height: 835px;background-color: #f1f5f7;">
-        <h-b-basicinfo 
-            :tableData="tableData"
-            :dictData="dictData"
-            :total="100"
+        <h-b-bridgeInfo
+            :methods="['export']"
             @search="handleSearch"
             @reset="handleReset" 
             @delete="handleDelete"
@@ -12,29 +10,41 @@
             @export="handleExport"
             @pageChange="handlePageChange"
         >
-            <template #operation="{ row }">
+            <!-- <template #operation="{ row }">
                 <el-button icon="Check" circle @click="handleCheck(row)"></el-button>
-            </template>
-        </h-b-basicinfo>
+            </template> -->
+        </h-b-bridgeInfo>
     </div>
 </template>
 <script setup>
-
+// :tableData="tableData"
+// :total="total"
+// :dictData="dictData"
 const tableData = ref([
-    { id: 1, bridgeName: '桥梁1', bridgeType: '桥梁类型1', bridgeArea: '区域1', bridgePos: '桥梁位置1', bridgeLength: '100' },
-    { id: 2, bridgeName: '桥梁2', bridgeType: '桥梁类型2', bridgeArea: '区域2', bridgePos: '桥梁位置2', bridgeLength: '200' },
-    { id: 3, bridgeName: '桥梁3', bridgeType: '桥梁类型3', bridgeArea: '区域3', bridgePos: '桥梁位置3', bridgeLength: '300' },
+    { id: 1, structureName: '桥梁1', bridgeScale: '桥梁类型1', belongingArea: '区域1', location: '桥梁位置1', maintenanceType: '100', maintenanceLevel: '养护等级1' },
+    { id: 2, structureName: '桥梁2', bridgeScale: '桥梁类型2', belongingArea: '区域2', location: '桥梁位置2', maintenanceType: '200', maintenanceLevel: '养护等级2' },
+    { id: 3, structureName: '桥梁3', bridgeScale: '桥梁类型3', belongingArea: '区域3', location: '桥梁位置3', maintenanceType: '300', maintenanceLevel: '养护等级3' },
 ])
 const dictData = ref({
-    bridgeTypeDict: [
+    bridgeScaleDict: [
         { label: '桥梁类型1', value: '1' },
         { label: '桥梁类型2', value: '2' },
         { label: '桥梁类型3', value: '3' },
     ],
-    bridgeAreaDict: [
+    belongingAreaDict: [
         { label: '区域1', value: '1' },
         { label: '区域2', value: '2' },
         { label: '区域3', value: '3' },
+    ],
+    maintenanceTypeDict: [
+        { label: '养护类别1', value: '1' },
+        { label: '养护类别2', value: '2' },
+        { label: '养护类别3', value: '3' },
+    ],
+    maintenanceLevelDict: [
+        { label: '养护等级1', value: '1' },
+        { label: '养护等级2', value: '2' },
+        { label: '养护等级3', value: '3' },
     ],
 })
 // 对外暴露的方法 搜索、重置、删除、新增、编辑、导出、分页

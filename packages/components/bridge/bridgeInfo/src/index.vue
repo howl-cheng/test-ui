@@ -74,7 +74,7 @@
         </div>
       </div>
     </div>
-    <el-dialog v-model="viewVisible" title="桥梁详情" width="50%">
+    <el-drawer v-model="viewVisible" title="桥梁详情" size="40%">
       <el-descriptions border :column="2">
         <el-descriptions-item label="桥梁名称">{{ rowData?.structureName }}</el-descriptions-item>
         <el-descriptions-item label="桥梁类型">{{ rowData?.bridgeScale }}</el-descriptions-item>
@@ -83,8 +83,8 @@
         <el-descriptions-item label="养护类别">{{ rowData?.maintenanceType }}</el-descriptions-item>
         <el-descriptions-item label="养护等级">{{ rowData?.maintenanceLevel }}</el-descriptions-item>
       </el-descriptions>
-    </el-dialog>
-    <el-dialog v-model="addVisible" title="新增桥梁" width="40%">
+    </el-drawer>
+    <el-dialog v-model="addVisible" title="新增桥梁" width="34%" destroy-on-close>
       <el-form :class="ns.e('form')" ref="addFormRef" :model="addFormData" :inline="true" :rules="addFormRules" label-width="auto">
         <el-form-item label="桥梁名称" prop="structureName"> 
           <el-input v-model="addFormData.structureName" placeholder="请输入桥梁名称" />
@@ -121,24 +121,36 @@
   </div>
 </template>
 <script lang="ts"> 
-  import { hasPermi, resizeH } from "../../../../directive"
   export default { 
     name: "h-b-bridgeInfo",
-    directives: {
-      hasPermi, 
-      resizeH
-    }
   }
 </script>
 <script lang="ts" setup>
-import { useNamespace, useDict } from "../../../../hooks"
-import { bridgeListApi } from './api'
-
 import { ref } from 'vue'
-import { ElMessageBox } from 'element-plus'
+import type { Directive } from 'vue'
+
+import { ElMessageBox, ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from "element-plus"
 
+import { useNamespace, useDict } from "../../../../hooks"
+import { hasPermi, resizeH } from "../../../../directive"
+import { listApi, addApi, delApi, editApi } from './api'
+
+const props = withDefaults(defineProps<{
+  tableData?: Array<TableData>
+  total?: number,
+  dicts?: Array<string>
+  methods?: Array<string>
+}>(), {
+  tableData: () => [],
+  total: 0,
+  dicts: () => ['belonging_area', 'bridge_scale', 'bridge_maintenance_type', 'bridge_maintenance_level'],
+  methods: () => []
+})
+const emits = defineEmits(['search', 'reset', 'delete', 'addSubmit', 'editSubmit', 'export', 'pageChange'])
+
 type TableData = {
+  structureId: string | null,
   structureName: string | null
   bridgeScale: string | null
   belongingArea: string | null
@@ -147,19 +159,11 @@ type TableData = {
   maintenanceLevel: string | null
 }
 
-const props = withDefaults(defineProps<{
-  tableData?: Array<TableData>
-  total?: number,
-  dicts?: Array<string>
-}>(), {
-  tableData: () => [],
-  total: 0,
-  dicts: () => ['belonging_area', 'bridge_scale', 'bridge_maintenance_type', 'bridge_maintenance_level']
-})
-const emits = defineEmits(['search', 'reset', 'delete', 'addSubmit', 'editSubmit', 'export', 'pageChange'])
-
+const vHasPermi = hasPermi as Directive<HTMLElement, any>
+const vResizeH = resizeH as Directive<HTMLElement, any>
 const ns = useNamespace('b-page')
 const { belonging_area, bridge_scale, bridge_maintenance_type, bridge_maintenance_level } = useDict(props.dicts || [])
+
 const queryRef = ref<FormInstance>()
 const queryParams = ref<{ 
   structureName: string | null,
@@ -167,7 +171,7 @@ const queryParams = ref<{
   belongingArea: string | null,
   maintenanceType: string | null,
   maintenanceLevel: string | null,
-  page: number,
+  pageNum: number,
   pageSize: number
 }>({ 
   structureName: null,
@@ -175,17 +179,18 @@ const queryParams = ref<{
   belongingArea: null,
   maintenanceType: null,
   maintenanceLevel: null,
-  page: 1, 
+  pageNum: 1, 
   pageSize: 10,
 })
 const tableList = ref<Array<TableData>>([])
 const total = ref<number>(0)
+const handleType = ref<string>('add')
 const viewVisible = ref<boolean>(false)
 const rowData = ref<TableData>()
-const handleType = ref<string>('add')
 const addVisible = ref<boolean>(false)
 const addFormRef = ref<FormInstance>()
-const addFormData = ref<TableData>({ 
+const addFormData = ref<TableData>({
+  structureId: null,
   structureName: null,
   bridgeScale: null,
   belongingArea: null,
@@ -195,25 +200,26 @@ const addFormData = ref<TableData>({
 })
 const addFormRules = ref<FormRules>({
   structureName: [{ required: true, message: '请输入桥梁名称', trigger: 'blur' }],
-  bridgeScale: [{ required: true, message: '请输入桥梁类型', trigger: 'blur' }],
+  bridgeScale: [{ required: true, message: '请选择桥梁类型', trigger: 'change' }],
+  belongingArea: [{ required: true, message: '请选择所属区域', trigger: 'change' }],
   location: [{ required: true, message: '请输入桥梁位置', trigger: 'blur' }],
-  maintenanceType: [{ required: true, message: '请选择养护类别', trigger: 'blur' }],
-  maintenanceLevel: [{ required: true, message: '请选择养护等级', trigger: 'blur' }],
+  maintenanceType: [{ required: true, message: '请选择养护类别', trigger: 'change' }],
+  maintenanceLevel: [{ required: true, message: '请选择养护等级', trigger: 'change' }],
 })
+
 const handleSearch = () => {
-  queryParams.value.page = 1
-  // 判断是否有传入的tableData，如果有则不请求接口
-  if (props.tableData.length > 0) {
+  queryParams.value.pageNum = 1
+  if (props.methods.includes('search')) {
     emits('search', queryParams.value)
   } else {
     getBridgeList()
   }
 }
 const handleReset = () => {
-  queryParams.value.page = 1
+  queryParams.value.pageNum = 1
   queryRef.value?.resetFields()
   // 判断是否有传入的tableData，如果有则不请求接口
-  if (props.tableData.length > 0) {
+  if (props.methods.includes('reset')) {
     emits('reset')
   } else {
     getBridgeList()
@@ -225,7 +231,16 @@ const handleDelete = (row: TableData) => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    emits('delete', row)
+    if (props.methods.includes('delete')) {
+      emits('delete', row)
+    } else {
+      delApi(row.structureId as string).then((res: any) => {
+        if (res.code === 200) {
+          getBridgeList()
+          ElMessage.success('删除成功')
+        }
+      })
+    }
   }).catch(() => {})
 }
 const handleView = (row: TableData) => {
@@ -247,9 +262,27 @@ const handleSubmit = () => {
   addFormRef.value?.validate((valid: boolean) => {
     if (valid) {
       if (handleType.value === 'add') {
-        emits('addSubmit', addFormData.value)
+        if (props.methods.includes('addSubmit')) {
+          emits('addSubmit', addFormData.value)
+        } else {
+          addApi(addFormData.value).then((res: any) => {
+            if (res.code === 200) {
+              getBridgeList()
+              ElMessage.success('新增成功')
+            }
+          })
+        }
       } else {
-        emits('editSubmit', addFormData.value)
+        if (props.methods.includes('editSubmit')) {
+          emits('editSubmit', addFormData.value)
+        } else {
+          editApi(addFormData.value).then((res: any) => {
+            if (res.code === 200) {
+              getBridgeList()
+              ElMessage.success('编辑成功')
+            }
+          })
+        }
       }
       addVisible.value = false
     }
@@ -259,9 +292,13 @@ const handleExport = () => {
   emits('export', queryParams.value)
 }
 const handlePageChange = (page: number, pageSize: number) => {
-  queryParams.value.page = page
+  queryParams.value.pageNum = page
   queryParams.value.pageSize = pageSize
-  emits('pageChange', queryParams.value)
+  if (props.methods.includes('pageChange')) {
+    emits('pageChange', queryParams.value)
+  } else {
+    getBridgeList()
+  }
 }
 
 // 数据接收，如果有传入的tableData 则使用传入的数据，否则请求接口获取数据
@@ -270,7 +307,7 @@ const getBridgeList = async () => {
     tableList.value = props.tableData
     total.value = props.total
   } else {
-    const res: any = await bridgeListApi(queryParams.value)
+    const res: any = await listApi(queryParams.value)
     if (res.code === 200) {
       tableList.value = res.rows
       total.value = res.total
