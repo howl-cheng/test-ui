@@ -1,0 +1,281 @@
+<template>
+  <div :class="ns.b()">
+    <div :class="ns.b('header')">
+      <el-form :class="ns.e('form')" ref="queryRef" :model="queryParams" :inline="true">
+        <el-form-item label="桥梁名称" prop="structureName">
+          <el-input v-model="queryParams.structureName" placeholder="请输入桥梁名称" clearable/>
+        </el-form-item>
+        <el-form-item label="所属区域" prop="belongingArea">
+          <el-select v-model="queryParams.belongingArea" placeholder="请选择所属区域" clearable>
+            <el-option v-for="item in belonging_area" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="桥梁类型" prop="bridgeScale">
+          <el-select v-model="queryParams.bridgeScale" placeholder="请选择桥梁类型" clearable>
+            <el-option v-for="item in bridge_scale" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="养护类别" prop="maintenanceType">
+          <el-select v-model="queryParams.maintenanceType" placeholder="请选择养护类别" clearable>
+            <el-option v-for="item in bridge_maintenance_type" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="养护等级" prop="maintenanceLevel">
+          <el-select v-model="queryParams.maintenanceLevel" placeholder="请选择养护等级" clearable>
+            <el-option v-for="item in bridge_maintenance_level" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button v-hasPermi="['bridge:basicInfo:search']" type="primary" icon="Search" @click="handleSearch">查询</el-button>
+          <el-button v-hasPermi="['bridge:basicInfo:reset']" icon="Refresh" @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+    <div :class="ns.b('content')" v-resizeH="true">
+      <div :class="ns.b('content-operation')">
+        <el-button type="primary" icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button icon="Download" @click="handleExport">导出</el-button>
+      </div>
+      <div :class="ns.b('content-table')">
+        <el-table :data="tableList" style="width: 100%; height: calc(100% - 0.5rem)" empty-text="暂无数据">
+          <el-table-column prop="structureName" label="桥梁名称" align="center"/>
+          <el-table-column prop="bridgeScale" label="桥梁类型" align="center">
+            <template #default="scope">
+              {{ bridge_scale.find((item: any) => item.value === scope.row.bridgeScale)?.label }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="belongingArea" label="所属区域" align="center">
+            <template #default="scope">
+              {{ belonging_area.find((item: any) => item.value === scope.row.belongingArea)?.label }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="location" label="桥梁位置" align="center"/>
+          <el-table-column prop="maintenanceType" label="养护类别" align="center">
+            <template #default="scope">
+              {{ bridge_maintenance_type.find((item: any) => item.value === scope.row.maintenanceType)?.label }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="maintenanceLevel" label="养护等级" align="center">
+            <template #default="scope">
+              {{ bridge_maintenance_level.find((item: any) => item.value === scope.row.maintenanceLevel)?.label }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" align="center">
+            <template #default="scope">
+              <el-button v-hasPermi="['bridge:basicInfo:view']" icon="View" circle @click="handleView(scope.row)"></el-button>
+              <el-button v-hasPermi="['bridge:basicInfo:edit']" icon="Edit" circle @click="handleEdit(scope.row)"></el-button>
+              <el-button v-hasPermi="['bridge:basicInfo:delete']" icon="Delete" circle @click="handleDelete(scope.row)"></el-button>
+              <slot name="operation" :row="scope.row"></slot>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div :class="ns.b('pagination')">
+          <el-pagination hide-on-single-page background layout="sizes, prev, pager, next" :total="total" @change="handlePageChange"/>
+        </div>
+      </div>
+    </div>
+    <el-dialog v-model="viewVisible" title="桥梁详情" width="50%">
+      <el-descriptions border :column="2">
+        <el-descriptions-item label="桥梁名称">{{ rowData?.structureName }}</el-descriptions-item>
+        <el-descriptions-item label="桥梁类型">{{ rowData?.bridgeScale }}</el-descriptions-item>
+        <el-descriptions-item label="所属区域">{{ rowData?.belongingArea }}</el-descriptions-item>
+        <el-descriptions-item label="桥梁位置">{{ rowData?.location }}</el-descriptions-item>
+        <el-descriptions-item label="养护类别">{{ rowData?.maintenanceType }}</el-descriptions-item>
+        <el-descriptions-item label="养护等级">{{ rowData?.maintenanceLevel }}</el-descriptions-item>
+      </el-descriptions>
+    </el-dialog>
+    <el-dialog v-model="addVisible" title="新增桥梁" width="40%">
+      <el-form :class="ns.e('form')" ref="addFormRef" :model="addFormData" :inline="true" :rules="addFormRules" label-width="auto">
+        <el-form-item label="桥梁名称" prop="structureName"> 
+          <el-input v-model="addFormData.structureName" placeholder="请输入桥梁名称" />
+        </el-form-item>
+        <el-form-item label="桥梁类型" prop="bridgeScale">
+          <el-select v-model="addFormData.bridgeScale" placeholder="请选择桥梁类型" clearable>
+            <el-option v-for="item in bridge_scale" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="所属区域" prop="belongingArea">
+          <el-select v-model="addFormData.belongingArea" placeholder="请选择所属区域">
+            <el-option v-for="item in belonging_area" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="桥梁位置" prop="location">
+          <el-input v-model="addFormData.location" placeholder="请输入桥梁位置" />
+        </el-form-item>
+        <el-form-item label="养护类别" prop="maintenanceType">
+          <el-select v-model="addFormData.maintenanceType" placeholder="请选择养护类别">
+            <el-option v-for="item in bridge_maintenance_type" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="养护等级" prop="maintenanceLevel">
+          <el-select v-model="addFormData.maintenanceLevel" placeholder="请选择养护等级">
+            <el-option v-for="item in bridge_maintenance_level" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button @click="addVisible = false">取消</el-button>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+<script lang="ts"> 
+  import { hasPermi, resizeH } from "../../../../directive"
+  export default { 
+    name: "h-b-bridgeInfo",
+    directives: {
+      hasPermi, 
+      resizeH
+    }
+  }
+</script>
+<script lang="ts" setup>
+import { useNamespace, useDict } from "../../../../hooks"
+import { bridgeListApi } from './api'
+
+import { ref } from 'vue'
+import { ElMessageBox } from 'element-plus'
+import type { FormInstance, FormRules } from "element-plus"
+
+type TableData = {
+  structureName: string | null
+  bridgeScale: string | null
+  belongingArea: string | null
+  location: string | null
+  maintenanceType: string | null
+  maintenanceLevel: string | null
+}
+
+const props = withDefaults(defineProps<{
+  tableData?: Array<TableData>
+  total?: number,
+  dicts?: Array<string>
+}>(), {
+  tableData: () => [],
+  total: 0,
+  dicts: () => ['belonging_area', 'bridge_scale', 'bridge_maintenance_type', 'bridge_maintenance_level']
+})
+const emits = defineEmits(['search', 'reset', 'delete', 'addSubmit', 'editSubmit', 'export', 'pageChange'])
+
+const ns = useNamespace('b-page')
+const { belonging_area, bridge_scale, bridge_maintenance_type, bridge_maintenance_level } = useDict(props.dicts || [])
+const queryRef = ref<FormInstance>()
+const queryParams = ref<{ 
+  structureName: string | null,
+  bridgeScale: string | null,
+  belongingArea: string | null,
+  maintenanceType: string | null,
+  maintenanceLevel: string | null,
+  page: number,
+  pageSize: number
+}>({ 
+  structureName: null,
+  bridgeScale: null,
+  belongingArea: null,
+  maintenanceType: null,
+  maintenanceLevel: null,
+  page: 1, 
+  pageSize: 10,
+})
+const tableList = ref<Array<TableData>>([])
+const total = ref<number>(0)
+const viewVisible = ref<boolean>(false)
+const rowData = ref<TableData>()
+const handleType = ref<string>('add')
+const addVisible = ref<boolean>(false)
+const addFormRef = ref<FormInstance>()
+const addFormData = ref<TableData>({ 
+  structureName: null,
+  bridgeScale: null,
+  belongingArea: null,
+  location: null,
+  maintenanceType: null,
+  maintenanceLevel: null
+})
+const addFormRules = ref<FormRules>({
+  structureName: [{ required: true, message: '请输入桥梁名称', trigger: 'blur' }],
+  bridgeScale: [{ required: true, message: '请输入桥梁类型', trigger: 'blur' }],
+  location: [{ required: true, message: '请输入桥梁位置', trigger: 'blur' }],
+  maintenanceType: [{ required: true, message: '请选择养护类别', trigger: 'blur' }],
+  maintenanceLevel: [{ required: true, message: '请选择养护等级', trigger: 'blur' }],
+})
+const handleSearch = () => {
+  queryParams.value.page = 1
+  // 判断是否有传入的tableData，如果有则不请求接口
+  if (props.tableData.length > 0) {
+    emits('search', queryParams.value)
+  } else {
+    getBridgeList()
+  }
+}
+const handleReset = () => {
+  queryParams.value.page = 1
+  queryRef.value?.resetFields()
+  // 判断是否有传入的tableData，如果有则不请求接口
+  if (props.tableData.length > 0) {
+    emits('reset')
+  } else {
+    getBridgeList()
+  }
+}
+const handleDelete = (row: TableData) => {
+  ElMessageBox.confirm('确定删除该桥梁吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(() => {
+    emits('delete', row)
+  }).catch(() => {})
+}
+const handleView = (row: TableData) => {
+  rowData.value = row
+  viewVisible.value = true
+}
+const handleAdd = () => {
+  addFormData.value = {} as TableData
+  handleType.value = 'add'
+  addVisible.value = true
+}
+const handleEdit = (row: TableData) => {
+  addFormData.value = { ...row }
+  handleType.value = 'edit'
+  addVisible.value = true
+}
+
+const handleSubmit = () => {
+  addFormRef.value?.validate((valid: boolean) => {
+    if (valid) {
+      if (handleType.value === 'add') {
+        emits('addSubmit', addFormData.value)
+      } else {
+        emits('editSubmit', addFormData.value)
+      }
+      addVisible.value = false
+    }
+  })
+}
+const handleExport = () => {
+  emits('export', queryParams.value)
+}
+const handlePageChange = (page: number, pageSize: number) => {
+  queryParams.value.page = page
+  queryParams.value.pageSize = pageSize
+  emits('pageChange', queryParams.value)
+}
+
+// 数据接收，如果有传入的tableData 则使用传入的数据，否则请求接口获取数据
+const getBridgeList = async () => {
+  if (props.tableData.length > 0 ) {
+    tableList.value = props.tableData
+    total.value = props.total
+  } else {
+    const res: any = await bridgeListApi(queryParams.value)
+    if (res.code === 200) {
+      tableList.value = res.rows
+      total.value = res.total
+    }
+  }
+}
+getBridgeList()
+</script>

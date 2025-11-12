@@ -91,10 +91,14 @@ export default defineConfig({
       formats: ['es', 'cjs']
     },
     rollupOptions: {
-      external: ['vue'],
+      // 将外部依赖标记为 external，避免被打包
+      external: ['vue', 'axios'],
       output: {
         exports: 'named',
-        globals: { vue: 'Vue' },
+        globals: { 
+          vue: 'Vue',
+          axios: 'axios'
+        },
       }
     },
     outDir: 'dist',
