@@ -11,7 +11,13 @@ import 'hny-ui-styles'
 
 const app = createApp(App)
 
-setPermissions(['bridge:basicInfo:search', 'bridge:basicInfo:reset', 'bridge:basicInfo:view', 'bridge:basicInfo:edit', 'bridge:basicInfo:delete'])
+setPermissions([
+  'structure:roadInfo:query',
+  'structure:roadInfo:edit',
+  'structure:roadInfo:remove',
+  'structure:roadInfo:add',
+  'structure:roadInfo:export',
+])
 setRequestParams({
   baseURL: '/dev-api',
   clientId: 'e5cd7e4891bf95d1d19206ce24a7b32e',

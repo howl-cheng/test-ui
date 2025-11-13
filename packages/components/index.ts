@@ -1,9 +1,9 @@
 import HbButton from './basis/button'
 import HcHeader from './cockpit/header'
 import HbBridgeInfo from './bridge/bridgeInfo'
-import HbStructureType from './bridge/structureType'
+import HbRoadInfo from './bridge/roadInfo'
 import HbDicts from './basis/dicts'
-const components = [HbButton, HcHeader, HbBridgeInfo, HbStructureType, HbDicts]
+const components = [HbButton, HcHeader, HbBridgeInfo, HbRoadInfo, HbDicts]
 
 const install = (app: any) => {  // 明确 app 类型
   components.forEach(component => {
@@ -11,6 +11,6 @@ const install = (app: any) => {  // 明确 app 类型
   })
 }
 
-export { HbButton, HcHeader, HbBridgeInfo, HbStructureType, HbDicts }
+export { HbButton, HcHeader, HbBridgeInfo, HbRoadInfo, HbDicts }
 
 export default install
