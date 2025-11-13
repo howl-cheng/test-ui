@@ -25,6 +25,16 @@
             <el-option v-for="item in bridge_maintenance_level" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
+        <el-form-item v-for="field in fields" :key="field.prop" :label="field.label" :prop="field.prop">
+          <template v-if="field.type === 'select' && field.isSearch">
+            <el-select v-model="queryParams[field.prop as keyof typeof queryParams]" :placeholder="`请选择${field.label}`" clearable>
+              <el-option v-for="item in field.options" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+          </template>
+          <template v-else-if="field.type === 'input' && field.isSearch">
+            <el-input v-model="queryParams[field.prop as keyof typeof queryParams]" :placeholder="`请输入${field.label}`" clearable />
+          </template>
+        </el-form-item>
         <el-form-item>
           <el-button v-hasPermi="['bridge:basicInfo:search']" type="primary" icon="Search" @click="handleSearch">查询</el-button>
           <el-button v-hasPermi="['bridge:basicInfo:reset']" icon="Refresh" @click="handleReset">重置</el-button>
@@ -41,23 +51,33 @@
           <el-table-column prop="structureName" label="桥梁名称" align="center"/>
           <el-table-column prop="bridgeScale" label="桥梁类型" align="center">
             <template #default="scope">
-              {{ bridge_scale.find((item: any) => item.value === scope.row.bridgeScale)?.label }}
+              <h-dicts :options="bridge_scale" :value="scope.row.bridgeScale" />
             </template>
           </el-table-column>
           <el-table-column prop="belongingArea" label="所属区域" align="center">
             <template #default="scope">
-              {{ belonging_area.find((item: any) => item.value === scope.row.belongingArea)?.label }}
+              <h-dicts :options="belonging_area" :value="scope.row.belongingArea" />
             </template>
           </el-table-column>
           <el-table-column prop="location" label="桥梁位置" align="center"/>
           <el-table-column prop="maintenanceType" label="养护类别" align="center">
             <template #default="scope">
-              {{ bridge_maintenance_type.find((item: any) => item.value === scope.row.maintenanceType)?.label }}
+              <h-dicts :options="bridge_maintenance_type" :value="scope.row.maintenanceType" />
             </template>
           </el-table-column>
           <el-table-column prop="maintenanceLevel" label="养护等级" align="center">
             <template #default="scope">
-              {{ bridge_maintenance_level.find((item: any) => item.value === scope.row.maintenanceLevel)?.label }}
+              <h-dicts :options="bridge_maintenance_level" :value="scope.row.maintenanceLevel" />
+            </template>
+          </el-table-column>
+          <el-table-column v-for="field in fields" :key="field.prop" :label="field.label" align="center">
+            <template #default="scope">
+              <template v-if="field.type === 'select'">
+                <h-dicts :options="field.options" :value="scope.row[field.prop as keyof typeof scope.row]" />
+              </template>
+              <template v-else-if="field.type === 'input'">
+                {{ scope.row[field.prop] }}
+              </template>
             </template>
           </el-table-column>
           <el-table-column label="操作" align="center">
@@ -82,6 +102,14 @@
         <el-descriptions-item label="桥梁位置">{{ rowData?.location }}</el-descriptions-item>
         <el-descriptions-item label="养护类别">{{ rowData?.maintenanceType }}</el-descriptions-item>
         <el-descriptions-item label="养护等级">{{ rowData?.maintenanceLevel }}</el-descriptions-item>
+        <el-descriptions-item v-for="field in fields" :key="field.prop" :label="field.label">
+          <template v-if="field.type === 'select'">
+            <h-dicts :options="field.options" :value="rowData?.[field.prop as keyof typeof rowData]" />
+          </template>
+          <template v-else-if="field.type === 'input'">
+            {{ rowData?.[field.prop as keyof typeof rowData] }}
+          </template>
+        </el-descriptions-item>
       </el-descriptions>
     </el-drawer>
     <el-dialog v-model="addVisible" title="新增桥梁" width="34%" destroy-on-close>
@@ -112,6 +140,16 @@
             <el-option v-for="item in bridge_maintenance_level" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
+        <el-form-item v-for="field in fields" :key="field.prop" :label="field.label" :prop="field.prop" >
+          <template v-if="field.type === 'select' && field.isRequired">
+            <el-select v-model="addFormData[field.prop as keyof typeof addFormData]" :placeholder="`请选择 ${field.label}`" clearable>
+              <el-option v-for="item in field.options" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+          </template>
+          <template v-else-if="field.type === 'input' && field.isRequired">
+            <el-input v-model="addFormData[field.prop as keyof typeof addFormData]" :placeholder="`请输入 ${field.label}`" clearable />
+          </template>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button type="primary" @click="handleSubmit">确定</el-button>
@@ -126,6 +164,7 @@
   }
 </script>
 <script lang="ts" setup>
+import HDicts from '../../../basis/dicts' 
 import { ref } from 'vue'
 import type { Directive } from 'vue'
 
@@ -136,19 +175,15 @@ import { useNamespace, useDict } from "../../../../hooks"
 import { hasPermi, resizeH } from "../../../../directive"
 import { listApi, addApi, delApi, editApi } from './api'
 
-const props = withDefaults(defineProps<{
-  tableData?: Array<TableData>
-  total?: number,
-  dicts?: Array<string>
-  methods?: Array<string>
-}>(), {
-  tableData: () => [],
-  total: 0,
-  dicts: () => ['belonging_area', 'bridge_scale', 'bridge_maintenance_type', 'bridge_maintenance_level'],
-  methods: () => []
-})
-const emits = defineEmits(['search', 'reset', 'delete', 'addSubmit', 'editSubmit', 'export', 'pageChange'])
-
+type Field = {
+  label: string
+  prop: string
+  placeholder: string
+  type: string
+  isRequired: boolean
+  isSearch: boolean
+  options: Array<any>
+}
 type TableData = {
   structureId: string | null,
   structureName: string | null
@@ -158,6 +193,22 @@ type TableData = {
   maintenanceType: string | null
   maintenanceLevel: string | null
 }
+const props = withDefaults(defineProps<{
+  tableData?: Array<TableData>
+  total?: number,
+  dicts?: Array<string>
+  methods?: Array<string>
+  fields?: Array<Field>
+}>(), {
+  tableData: () => [],
+  total: 0,
+  dicts: () => ['belonging_area', 'bridge_scale', 'bridge_maintenance_type', 'bridge_maintenance_level'],
+  methods: () => [],
+  fields: () => []
+})
+const emits = defineEmits(['search', 'reset', 'delete', 'addSubmit', 'editSubmit', 'export', 'pageChange'])
+
+
 
 const vHasPermi = hasPermi as Directive<HTMLElement, any>
 const vResizeH = resizeH as Directive<HTMLElement, any>
@@ -205,6 +256,12 @@ const addFormRules = ref<FormRules>({
   location: [{ required: true, message: '请输入桥梁位置', trigger: 'blur' }],
   maintenanceType: [{ required: true, message: '请选择养护类别', trigger: 'change' }],
   maintenanceLevel: [{ required: true, message: '请选择养护等级', trigger: 'change' }],
+  ...props.fields.reduce((acc: FormRules, field: Field) => {
+    if (field.isRequired) {
+      acc[field.prop as keyof typeof acc] = [{ required: true, message: `请选择 ${field.label}`, trigger: 'change' }]
+    }
+    return acc
+  }, {} as FormRules),
 })
 
 const handleSearch = () => {
@@ -218,7 +275,6 @@ const handleSearch = () => {
 const handleReset = () => {
   queryParams.value.pageNum = 1
   queryRef.value?.resetFields()
-  // 判断是否有传入的tableData，如果有则不请求接口
   if (props.methods.includes('reset')) {
     emits('reset')
   } else {
