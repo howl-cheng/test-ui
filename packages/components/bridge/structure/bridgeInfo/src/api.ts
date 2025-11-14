@@ -1,8 +1,8 @@
-import { request } from '../../../../utils/request'
+import { request } from '../../../../../utils/request'
 
 export const listApi = (params: any) => {
   return request({
-    url: '/basics/structure/roadInfo/list',
+    url: '/basics/structure/bridgeInfo/list',
     method: 'get',
     params
   })
@@ -10,7 +10,7 @@ export const listApi = (params: any) => {
 
 export const addApi = (data: any) => {
   return request({
-    url: '/basics/structure/roadInfo',
+    url: '/basics/structure/bridgeInfo',
     method: 'post',
     data
   })
@@ -18,14 +18,14 @@ export const addApi = (data: any) => {
 
 export const delApi = (id: string) => {
   return request({
-    url: '/basics/structure/roadInfo/' + id,
+    url: '/basics/structure/bridgeInfo/' + id,
     method: 'delete'
   })
 }
 
 export const editApi = (data: any) => {
   return request({
-    url: '/basics/structure/roadInfo',
+    url: '/basics/structure/bridgeInfo',
     method: 'put',
     data
   })

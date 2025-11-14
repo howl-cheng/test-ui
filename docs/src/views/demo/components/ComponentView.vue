@@ -5,7 +5,7 @@
   </div>
 </template>
 <script setup>
-import HnyUI, { directive } from 'hny-ui'
+import HnyUI, { directive, setRequestParams } from 'hny-ui'
 import ElementPlus from 'element-plus'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { loadModule } from 'vue3-sfc-loader'
@@ -17,11 +17,17 @@ const error = ref('')
 let appInstance = null
 let styleElements = []
 
-watch(() => demoStore.code, () => {
+watch(() => demoStore.code,  () => {
   nextTick(() => {
     renderComponent()
   })
 })
+
+watch(() => demoStore.settingParams,  () => {
+  nextTick(() => {
+    renderComponent()
+  })
+}, { deep: true })
 
 onUnmounted(() => {
   clearComponent()
@@ -46,6 +52,7 @@ const renderComponent = async () => {
   error.value = ''
   clearComponent()
   componentViewRef.value.innerHTML = ''
+  setRequestParams(demoStore.settingParams)
   try {
     const options = {
       moduleCache: {

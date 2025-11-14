@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+// import HelloWorld from './components/HelloWorld.vue'
+import Alarm from './components/alarm.vue'
 // import Screen from './components/screen.vue'
 </script>
 
 <template>
   <!-- <Screen /> -->
-  <HelloWorld />
+  <!-- <HelloWorld /> -->
+  <Alarm />
 </template>

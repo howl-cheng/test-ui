@@ -1,8 +1,9 @@
-import { request } from '../../../../utils/request'
+
+import { request } from '../../../../../utils/request'
 
 export const listApi = (params: any) => {
   return request({
-    url: '/basics/structure/bridgeInfo/list',
+    url: 'basics/alarm/warnNoticeConfig/list',
     method: 'get',
     params
   })

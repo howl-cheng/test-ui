@@ -2,17 +2,9 @@
   <div :class="ns.b()">
     <div :class="ns.b('header')">
       <el-form :class="ns.e('form')" ref="queryRef" :model="queryParams" :inline="true">
-        <el-form-item label="道路名称" prop="structureName">
-          <el-input v-model="queryParams.structureName" placeholder="请输入道路名称" clearable/>
-        </el-form-item>
-        <el-form-item label="所属区域" prop="belongingArea">
-          <el-select v-model="queryParams.belongingArea" placeholder="请选择所属区域" clearable>
+        <el-form-item label="所属部门" prop="belongingArea">
+          <el-select v-model="queryParams.belongingArea" placeholder="请选择所属部门" clearable>
             <el-option v-for="item in belonging_area" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="道路等级" prop="roadType">
-          <el-select v-model="queryParams.roadType" placeholder="请选择道路等级" clearable>
-            <el-option v-for="item in road_type" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item v-for="field in fields" :key="field.prop" :label="field.label" :prop="field.prop">
@@ -26,30 +18,31 @@
           </template>
         </el-form-item>
         <el-form-item>
-          <el-button v-hasPermi="['structure:roadInfo:query']" type="primary" icon="Search" @click="handleSearch">查询</el-button>
-          <el-button v-hasPermi="['structure:roadInfo:query']" icon="Refresh" @click="handleReset">重置</el-button>
+          <el-button v-hasPermi="['alarm:warnConfig:query']" type="primary" icon="Search" @click="handleSearch">查询</el-button>
+          <el-button v-hasPermi="['alarm:warnConfig:query']" icon="Refresh" @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
     <div :class="ns.b('content')" v-resizeH="true">
       <div :class="ns.b('content-operation')">
-        <el-button v-hasPermi="['structure:roadInfo:add']" type="primary" icon="Plus" @click="handleAdd">新增</el-button>
-        <el-button v-hasPermi="['structure:roadInfo:export']" icon="Download" @click="handleExport">导出</el-button>
+        <el-button type="primary" icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button icon="Download" @click="handleExport">导出</el-button>
       </div>
       <div :class="ns.b('content-table')">
         <el-table :data="tableList" style="width: 100%; height: calc(100% - 0.5rem)" empty-text="暂无数据">
-          <el-table-column prop="structureName" label="道路名称" align="center"/>
-          <el-table-column prop="roadType" label="道路等级" align="center">
+          <el-table-column prop="deptName" label="所属部门" align="center"/>
+          <el-table-column label="结构物名称" align="center">
             <template #default="scope">
-              <h-dicts :options="road_type" :value="scope.row.roadType" />
+              {{ structureName(scope.row.structureList) }}
             </template>
           </el-table-column>
-          <el-table-column prop="belongingArea" label="所属区域" align="center">
+          <el-table-column label="联系人" align="center">
             <template #default="scope">
-              <h-dicts :options="belonging_area" :value="scope.row.belongingArea" />
+              {{ contactName(scope.row.userList) }}
             </template>
           </el-table-column>
-          <el-table-column prop="startEndPoint" label="起止点" align="center"/>
+          <el-table-column prop="createTime" label="操作时间" align="center"/>
+          <el-table-column prop="createName" label="操作人" align="center"/>
           <el-table-column v-for="field in fields" :key="field.prop" :label="field.label" align="center">
             <template #default="scope">
               <template v-if="field.type === 'select'">
@@ -62,9 +55,9 @@
           </el-table-column>
           <el-table-column label="操作" align="center">
             <template #default="scope">
-              <el-button v-hasPermi="['structure:roadInfo:query']" icon="View" circle @click="handleView(scope.row)"></el-button>
-              <el-button v-hasPermi="['structure:roadInfo:edit']" icon="Edit" circle @click="handleEdit(scope.row)"></el-button>
-              <el-button v-hasPermi="['structure:roadInfo:remove']" icon="Delete" circle @click="handleDelete(scope.row)"></el-button>
+              <el-button v-hasPermi="['alarm:warnConfig:query']" icon="View" circle @click="handleView(scope.row)"></el-button>
+              <el-button v-hasPermi="['alarm:warnConfig:edit']" icon="Edit" circle @click="handleEdit(scope.row)"></el-button>
+              <el-button v-hasPermi="['alarm:warnConfig:remove']" icon="Delete" circle @click="handleDelete(scope.row)"></el-button>
               <slot name="operation" :row="scope.row"></slot>
             </template>
           </el-table-column>
@@ -76,14 +69,11 @@
     </div>
     <el-drawer v-model="viewVisible" title="桥梁详情" size="40%">
       <el-descriptions border :column="2">
-        <el-descriptions-item label="道路名称">{{ rowData?.structureName }}</el-descriptions-item>
-        <el-descriptions-item label="道路等级">
-          <h-dicts :options="road_type" :value="rowData?.roadType" />
-        </el-descriptions-item>
-        <el-descriptions-item label="所属区域">
-          <h-dicts :options="belonging_area" :value="rowData?.belongingArea" />
-        </el-descriptions-item>
-        <el-descriptions-item label="起止点">{{ rowData?.startEndPoint }}</el-descriptions-item>
+        <el-descriptions-item label="所属部门">{{ rowData?.deptName }}</el-descriptions-item>
+        <el-descriptions-item label="结构物名称">{{ structureName(rowData?.structureList) }}</el-descriptions-item>
+        <el-descriptions-item label="联系人">{{ contactName(rowData?.userList) }}</el-descriptions-item>
+        <el-descriptions-item label="选择模板">{{ rowData?.templateName }}</el-descriptions-item>
+        <el-descriptions-item label="模板内容">{{ rowData?.content }}</el-descriptions-item>
         <el-descriptions-item v-for="field in fields" :key="field.prop" :label="field.label">
           <template v-if="field.type === 'select'">
             <h-dicts :options="field.options" :value="rowData?.[field.prop as keyof typeof rowData]" />
@@ -96,21 +86,21 @@
     </el-drawer>
     <el-dialog v-model="addVisible" title="新增桥梁" width="34%" destroy-on-close>
       <el-form :class="ns.e('form')" ref="addFormRef" :model="addFormData" :inline="true" :rules="addFormRules" label-width="auto">
-        <el-form-item label="道路名称" prop="structureName"> 
-          <el-input v-model="addFormData.structureName" placeholder="请输入桥梁名称" />
+        <el-form-item label="所属部门" prop="structureName"> 
+          <el-input v-model="addFormData.deptName" placeholder="请输入所属部门" />
         </el-form-item>
-        <el-form-item label="道路等级" prop="roadType">
-          <el-select v-model="addFormData.roadType" placeholder="请选择道路等级" clearable>
-            <el-option v-for="item in road_type" :key="item.value" :label="item.label" :value="item.value" />
+        <el-form-item label="结构物名称" prop="bridgeScale">
+          <el-select v-model="addFormData.bridgeScale" placeholder="请选择结构物名称" clearable>
+            <el-option v-for="item in bridge_scale" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
-        <el-form-item label="所属区域" prop="belongingArea">
-          <el-select v-model="addFormData.belongingArea" placeholder="请选择所属区域">
+        <el-form-item label="选择模板" prop="templateId">
+          <el-select v-model="addFormData.templateId" placeholder="请选择选择模板">
             <el-option v-for="item in belonging_area" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
-        <el-form-item label="起止点" prop="startEndPoint">
-          <el-input v-model="addFormData.startEndPoint" placeholder="请输入起止点" />
+        <el-form-item label="模板内容" prop="content">
+          <el-input v-model="addFormData.content" placeholder="请输入模板内容" />
         </el-form-item>
         <el-form-item v-for="field in fields" :key="field.prop" :label="field.label" :prop="field.prop" >
           <template v-if="field.type === 'select' && field.isRequired">
@@ -132,19 +122,19 @@
 </template>
 <script lang="ts"> 
   export default { 
-    name: "h-b-roadInfo",
+    name: "h-b-warnConfig",
   }
 </script>
 <script lang="ts" setup>
-import HDicts from '../../../basis/dicts' 
-import { ref } from 'vue'
+import HDicts from '../../../../basis/dicts' 
+import { ref, } from 'vue'
 import type { Directive } from 'vue'
 
 import { ElMessageBox, ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from "element-plus"
 
-import { useNamespace, useDict } from "../../../../hooks"
-import { hasPermi, resizeH } from "../../../../directive"
+import { useNamespace, useDict } from "../../../../../hooks"
+import { hasPermi, resizeH } from "../../../../../directive"
 import { listApi, addApi, delApi, editApi } from './api'
 
 type Field = {
@@ -158,10 +148,13 @@ type Field = {
 }
 type TableData = {
   structureId: string | null,
-  structureName: string | null
-  roadType: string | null
-  belongingArea: string | null
-  startEndPoint: string | null
+  deptName: string | null
+  bridgeScale: string | null
+  structureList: Array<any> | null
+  userList: Array<any> | null
+  templateId: string | null
+  templateName: string | null
+  content: string | null
 }
 const props = withDefaults(defineProps<{
   tableData?: Array<TableData>
@@ -172,30 +165,33 @@ const props = withDefaults(defineProps<{
 }>(), {
   tableData: () => [],
   total: 0,
-  dicts: () => ['belonging_area', 'road_type'],
+  dicts: () => ['belonging_area', 'bridge_scale', 'bridge_maintenance_type', 'bridge_maintenance_level'],
   methods: () => [],
   fields: () => []
 })
 const emits = defineEmits(['search', 'reset', 'delete', 'addSubmit', 'editSubmit', 'export', 'pageChange'])
 
 
-
 const vHasPermi = hasPermi as Directive<HTMLElement, any>
 const vResizeH = resizeH as Directive<HTMLElement, any>
 const ns = useNamespace('b-page')
-const { belonging_area, road_type } = useDict(props.dicts || [])
+const { belonging_area, bridge_scale, bridge_maintenance_type, bridge_maintenance_level } = useDict(props.dicts || [])
 
 const queryRef = ref<FormInstance>()
 const queryParams = ref<{ 
   structureName: string | null,
-  roadType: string | null,
+  bridgeScale: string | null,
   belongingArea: string | null,
+  maintenanceType: string | null,
+  maintenanceLevel: string | null,
   pageNum: number,
   pageSize: number
 }>({ 
   structureName: null,
-  roadType: null,
+  bridgeScale: null,
   belongingArea: null,
+  maintenanceType: null,
+  maintenanceLevel: null,
   pageNum: 1, 
   pageSize: 10,
 })
@@ -208,16 +204,21 @@ const addVisible = ref<boolean>(false)
 const addFormRef = ref<FormInstance>()
 const addFormData = ref<TableData>({
   structureId: null,
-  structureName: null,
-  roadType: null,
-  belongingArea: null,
-  startEndPoint: null,
+  deptName: null,
+  bridgeScale: null,
+  structureList: null,
+  userList: null,
+  templateId: null,
+  templateName: null,
+  content: null
 })
 const addFormRules = ref<FormRules>({
-  structureName: [{ required: true, message: '请输入道路名称', trigger: 'blur' }],
-  roadType: [{ required: true, message: '请选择道路等级', trigger: 'change' }],
+  structureName: [{ required: true, message: '请输入桥梁名称', trigger: 'blur' }],
+  bridgeScale: [{ required: true, message: '请选择桥梁类型', trigger: 'change' }],
   belongingArea: [{ required: true, message: '请选择所属区域', trigger: 'change' }],
-  startEndPoint: [{ required: true, message: '请输入起止点', trigger: 'blur' }],
+  location: [{ required: true, message: '请输入桥梁位置', trigger: 'blur' }],
+  maintenanceType: [{ required: true, message: '请选择养护类别', trigger: 'change' }],
+  maintenanceLevel: [{ required: true, message: '请选择养护等级', trigger: 'change' }],
   ...props.fields.reduce((acc: FormRules, field: Field) => {
     if (field.isRequired) {
       acc[field.prop as keyof typeof acc] = [{ required: true, message: `请选择 ${field.label}`, trigger: 'change' }]
@@ -225,6 +226,15 @@ const addFormRules = ref<FormRules>({
     return acc
   }, {} as FormRules),
 })
+const contactName = (userList: Array<any> | null) => {
+  if (!userList) return ''
+  return userList.map((item: any) => item.nickName).join('、') || ''
+}
+
+const structureName = (structureList: Array<any> | null) => {
+  if (!structureList) return ''
+  return structureList.map((item: any) => item.structureName).join('、') || ''
+}
 
 const handleSearch = () => {
   queryParams.value.pageNum = 1
@@ -244,7 +254,7 @@ const handleReset = () => {
   }
 }
 const handleDelete = (row: TableData) => {
-  ElMessageBox.confirm('确定删除该道路吗？', '提示', {
+  ElMessageBox.confirm('确定删除该推送配置吗？', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning',

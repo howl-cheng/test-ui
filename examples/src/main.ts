@@ -17,6 +17,11 @@ setPermissions([
   'structure:roadInfo:remove',
   'structure:roadInfo:add',
   'structure:roadInfo:export',
+  'alarm:warnConfig:query',
+  'alarm:warnConfig:edit',
+  'alarm:warnConfig:remove',
+  'alarm:warnConfig:add',
+  'alarm:warnConfig:export',
 ])
 setRequestParams({
   baseURL: '/dev-api',

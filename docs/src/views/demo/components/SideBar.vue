@@ -25,10 +25,24 @@ const sidebarList = [
   },
   {
     id: 'bridge',
-    title: '桥梁平台页面',
+    title: '桥梁平台',
     children: [
-      {id: 'bridge/basicInfo', title: '桥梁基础信息'},
-      {id: 'bridge/structureType', title: '桥梁结构类型'},
+      {
+        id: 'bridge/structure',
+        title: '桥梁基础信息',
+        children: [
+          {id: 'bridge/structure/bridgeInfo', title: '桥梁基础信息'},
+          {id: 'bridge/structure/roadInfo', title: '道路基础信息'},
+        ]
+      },
+      {
+        id: 'bridge/alarm',
+        title: '报警信息管理',
+        children: [
+          {id: 'bridge/alarm/warnConfig', title: '预警推送配置'},
+          {id: 'bridge/alarm/warnTemplate', title: '预警推送模板'},
+        ]
+      }
     ]
   },
   { id: 'cockpit',

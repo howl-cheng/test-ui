@@ -8,7 +8,6 @@ import '@/routes/permission.js' // 路由拦截
 import App from './App.vue'
 import router from "@/routes/index";
 import pinia from '@/store/index.js'
-
 // md代码高亮UI
 import 'highlight.js/styles/github.css'
 

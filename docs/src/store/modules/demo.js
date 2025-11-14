@@ -6,6 +6,12 @@ export const useDemoStore = defineStore('demo', {
       activeItem: '', // 当前选中的组件
       code: '', // 当前选中的组件
       consoleLogs: [], // 控制台日志
+      settingParams: {
+        timeout: 80000,
+        baseURL: '/dev-api',
+        clientId: 'e5cd7e4891bf95d1d19206ce24a7b32e',
+        token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxIiwicm5TdHIiOiJhaEZpUkI3eHJBNU53R2VOdHpCZm5RQk13YXBwOFgycSIsImNsaWVudGlkIjoiZTVjZDdlNDg5MWJmOTVkMWQxOTIwNmNlMjRhN2IzMmUiLCJ0ZW5hbnRJZCI6IjAwMDAwMCIsInVzZXJJZCI6MSwidXNlck5hbWUiOiJhZG1pbiIsImRlcHRJZCI6MTAwLCJkZXB0TmFtZSI6IumdkuWym-W4giJ9.WnwM-fUcO_54t4Enwas6zNwtdYVrw5Ie44unsruWSuk',
+      }, // 设置参数
     }
   },
   actions: {
@@ -25,6 +31,9 @@ export const useDemoStore = defineStore('demo', {
       this.activeItem = ''
       this.code = ''
       this.consoleLogs = []
+    },
+    action_settingParams (val) {
+      this.settingParams = val
     }
   },
   persist: {
@@ -32,7 +41,7 @@ export const useDemoStore = defineStore('demo', {
     strategies: [
       {
         storage: localStorage, // 指定存储位置
-        paths: ['token'], // 指定存储字段
+        paths: ['settingParams'], // 指定存储字段
       }
     ]
   }
