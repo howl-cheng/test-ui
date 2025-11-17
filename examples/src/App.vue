@@ -8,4 +8,5 @@ import Alarm from './components/alarm.vue'
   <!-- <Screen /> -->
   <!-- <HelloWorld /> -->
   <Alarm />
+
 </template>

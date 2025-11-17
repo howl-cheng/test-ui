@@ -11,18 +11,18 @@ import 'hny-ui-styles'
 
 const app = createApp(App)
 
-setPermissions([
-  'structure:roadInfo:query',
-  'structure:roadInfo:edit',
-  'structure:roadInfo:remove',
-  'structure:roadInfo:add',
-  'structure:roadInfo:export',
-  'alarm:warnConfig:query',
-  'alarm:warnConfig:edit',
-  'alarm:warnConfig:remove',
-  'alarm:warnConfig:add',
-  'alarm:warnConfig:export',
-])
+// setPermissions([
+//   'structure:roadInfo:query',
+//   'structure:roadInfo:edit',
+//   'structure:roadInfo:remove',
+//   'structure:roadInfo:add',
+//   'structure:roadInfo:export',
+//   'alarm:warnConfig:query',
+//   'alarm:warnConfig:edit',
+//   'alarm:warnConfig:remove',
+//   'alarm:warnConfig:add',
+//   'alarm:warnConfig:export',
+// ])
 setRequestParams({
   baseURL: '/dev-api',
   clientId: 'e5cd7e4891bf95d1d19206ce24a7b32e',

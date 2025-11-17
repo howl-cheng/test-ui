@@ -40,10 +40,16 @@
 
 // element-plus 样式
 .h-b-page__form {
+  .el-form-item__content {
+    min-width: 240px;
+  }
   .el-select {
-    min-width: 200px;
+    width: 100%;
   }
   .el-input {
-    min-width: 200px;
+    width: 100%;
+  }
+  .el-textarea {
+    width: 100%;
   }
 }

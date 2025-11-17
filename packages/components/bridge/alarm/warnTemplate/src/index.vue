@@ -2,18 +2,8 @@
   <div :class="ns.b()">
     <div :class="ns.b('header')">
       <el-form :class="ns.e('form')" ref="queryRef" :model="queryParams" :inline="true">
-        <el-form-item label="所属部门" prop="deptId">
-          <!-- <el-select v-model="queryParams.deptId" placeholder="请选择所属部门" clearable>
-            <el-option v-for="item in deptList" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select> -->
-          <el-tree-select
-            v-model="queryParams.deptId"
-            :data="deptOptions"
-            :props="{ value: 'deptId', label: 'deptName', children: 'children' }"
-            value-key="deptId"
-            placeholder="请选择所属部门"
-            check-strictly
-          />
+        <el-form-item label="模板名称" prop="templateName">
+          <el-input v-model="queryParams.templateName" placeholder="请输入模板名称" clearable />
         </el-form-item>
         <el-form-item v-for="field in fields" :key="field.prop" :label="field.label" :prop="field.prop">
           <template v-if="field.type === 'select' && field.isSearch">
@@ -26,31 +16,26 @@
           </template>
         </el-form-item>
         <el-form-item>
-          <el-button v-hasPermi="['alarm:warnConfig:query']" type="primary" icon="Search" @click="handleSearch">查询</el-button>
-          <el-button v-hasPermi="['alarm:warnConfig:query']" icon="Refresh" @click="handleReset">重置</el-button>
+          <el-button v-hasPermi="['alarm:warnTemplate:query']" type="primary" icon="Search" @click="handleSearch">查询</el-button>
+          <el-button v-hasPermi="['alarm:warnTemplate:query']" icon="Refresh" @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
     <div :class="ns.b('content')" v-resizeH="true">
       <div :class="ns.b('content-operation')">
         <el-button type="primary" icon="Plus" @click="handleAdd">新增</el-button>
-        <el-button icon="Download" @click="handleExport">导出</el-button>
       </div>
       <div :class="ns.b('content-table')">
         <el-table :data="tableList" style="width: 100%; height: calc(100% - 0.5rem)" empty-text="暂无数据">
-          <el-table-column prop="deptName" label="所属部门" align="center"/>
-          <el-table-column label="结构物名称" align="center">
+          <el-table-column prop="templateName" label="模板名称" align="center"/>
+          <el-table-column prop="sign" label="签名" align="center">
             <template #default="scope">
-              {{ structureName(scope.row.structureList) }}
+              <h-dicts :options="warn_notice_sign" :value="scope.row.sign" />
             </template>
           </el-table-column>
-          <el-table-column label="联系人" align="center">
-            <template #default="scope">
-              {{ contactName(scope.row.userList) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="createTime" label="操作时间" align="center"/>
+          <el-table-column prop="content" label="模板内容" align="center"></el-table-column>
           <el-table-column prop="createName" label="操作人" align="center"/>
+          <el-table-column prop="createTime" label="操作时间" align="center"/>
           <el-table-column v-for="field in fields" :key="field.prop" :label="field.label" align="center">
             <template #default="scope">
               <template v-if="field.type === 'select'">
@@ -63,9 +48,9 @@
           </el-table-column>
           <el-table-column label="操作" align="center">
             <template #default="scope">
-              <el-button v-hasPermi="['alarm:warnConfig:query']" icon="View" circle @click="handleView(scope.row)"></el-button>
-              <el-button v-hasPermi="['alarm:warnConfig:edit']" icon="Edit" circle @click="handleEdit(scope.row)"></el-button>
-              <el-button v-hasPermi="['alarm:warnConfig:remove']" icon="Delete" circle @click="handleDelete(scope.row)"></el-button>
+              <el-button v-hasPermi="['alarm:warnTemplate:query']" icon="View" circle @click="handleView(scope.row)"></el-button>
+              <el-button v-hasPermi="['alarm:warnTemplate:edit']" icon="Edit" circle @click="handleEdit(scope.row)"></el-button>
+              <el-button v-hasPermi="['alarm:warnTemplate:remove']" icon="Delete" circle @click="handleDelete(scope.row)"></el-button>
               <slot name="operation" :row="scope.row"></slot>
             </template>
           </el-table-column>
@@ -75,13 +60,15 @@
         </div>
       </div>
     </div>
-    <el-drawer v-model="viewVisible" title="桥梁详情" size="40%">
+    <el-drawer v-model="viewVisible" title="预警推送配置详情" size="40%">
       <el-descriptions border :column="2">
-        <el-descriptions-item label="所属部门">{{ rowData?.deptName }}</el-descriptions-item>
-        <el-descriptions-item label="结构物名称">{{ structureName(rowData?.structureList) }}</el-descriptions-item>
-        <el-descriptions-item label="联系人">{{ contactName(rowData?.userList) }}</el-descriptions-item>
-        <el-descriptions-item label="选择模板">{{ rowData?.templateName }}</el-descriptions-item>
-        <el-descriptions-item label="模板内容">{{ rowData?.content }}</el-descriptions-item>
+        <el-descriptions-item label="模板名称">{{ rowData?.templateName }}</el-descriptions-item>
+        <el-descriptions-item label="签名">
+          <h-dicts :options="warn_notice_sign" :value="rowData?.sign" />
+        </el-descriptions-item>
+        <el-descriptions-item label="模板内容" span="2">{{ rowData?.content }}</el-descriptions-item>
+        <el-descriptions-item label="操作人">{{ rowData?.createName }}</el-descriptions-item>
+        <el-descriptions-item label="操作时间">{{ rowData?.createTime }}</el-descriptions-item>
         <el-descriptions-item v-for="field in fields" :key="field.prop" :label="field.label">
           <template v-if="field.type === 'select'">
             <h-dicts :options="field.options" :value="rowData?.[field.prop as keyof typeof rowData]" />
@@ -92,30 +79,31 @@
         </el-descriptions-item>
       </el-descriptions>
     </el-drawer>
-    <el-dialog v-model="addVisible" title="新增预警推送配置" width="36%" destroy-on-close>
+    <el-dialog v-model="addVisible" title="新增预警推送配置" width="380" destroy-on-close>
       <el-form :class="ns.e('form')" ref="addFormRef" :model="addFormData" :inline="true" :rules="addFormRules" label-width="auto">
-        <el-form-item label="所属部门" prop="deptId"> 
-          <el-tree-select
-            v-model="addFormData.deptId"
-            :data="deptOptions"
-            :props="{ value: 'deptId', label: 'deptName', children: 'children' }"
-            value-key="deptId"
-            placeholder="请选择所属部门"
-            check-strictly
-          />
+        <el-form-item label="模板名称" prop="templateName"> 
+          <el-input v-model="addFormData.templateName" placeholder="请输入模板名称" clearable />
         </el-form-item>
-        <el-form-item label="结构物名称" prop="bridgeScale">
-          <el-select v-model="addFormData.bridgeScale" placeholder="请选择结构物名称" clearable>
-            <el-option v-for="item in bridge_scale" :key="item.value" :label="item.label" :value="item.value" />
+        <el-form-item label="签名" prop="sign">
+          <el-select v-model="addFormData.sign" placeholder="请选择签名" clearable>
+            <el-option v-for="item in warn_notice_sign" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
-        <el-form-item label="选择模板" prop="templateId">
-          <el-select v-model="addFormData.templateId" placeholder="请选择选择模板">
-            <el-option v-for="item in belonging_area" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
+        <el-form-item label="可插入数据">
+          <el-card>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+              <el-button
+                v-for="item in warn_notice_item"
+                :key="item.value"
+                type="primary"
+                style="margin-left: 0px;"
+                size="small"
+                @click="handleInsert(item.value)">{{ item.label }}</el-button>
+            </div>
+          </el-card>
         </el-form-item>
         <el-form-item label="模板内容" prop="content">
-          <el-input v-model="addFormData.content" placeholder="请输入模板内容" />
+          <el-input id="content" v-model="addFormData.content" :rows="5" type="textarea" placeholder="请输入模板内容" />
         </el-form-item>
         <el-form-item v-for="field in fields" :key="field.prop" :label="field.label" :prop="field.prop" >
           <template v-if="field.type === 'select' && field.isRequired">
@@ -136,8 +124,8 @@
   </div>
 </template>
 <script lang="ts"> 
-  export default { 
-    name: "h-b-warnConfig",
+  export default {
+    name: "h-b-warnTemplate",
   }
 </script>
 <script lang="ts" setup>
@@ -150,8 +138,7 @@ import type { FormInstance, FormRules } from "element-plus"
 
 import { useNamespace, useDict } from "../../../../../hooks"
 import { hasPermi, resizeH } from "../../../../../directive"
-import { handleTree } from '../../../../../utils'
-import { listApi, addApi, delApi, editApi, deptApi } from './api'
+import { listApi, addApi, delApi, editApi } from './api'
 
 type Field = {
   label: string
@@ -163,14 +150,12 @@ type Field = {
   options: Array<any>
 }
 type TableData = {
-  deptId: string | null,
-  deptName: string | null
-  bridgeScale: string | null
-  structureList: Array<any> | null
-  userList: Array<any> | null
   templateId: string | null
   templateName: string | null
-  content: string | null
+  sign: string | null
+  content: string | null | undefined
+  createName: string | null
+  createTime: string | null
 }
 const props = withDefaults(defineProps<{
   tableData?: Array<TableData>
@@ -181,7 +166,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   tableData: () => [],
   total: 0,
-  dicts: () => ['belonging_area', 'bridge_scale'],
+  dicts: () => ['warn_notice_sign', 'warn_notice_item'],
   methods: () => [],
   fields: () => []
 })
@@ -191,15 +176,14 @@ const emits = defineEmits(['search', 'reset', 'delete', 'addSubmit', 'editSubmit
 const vHasPermi = hasPermi as Directive<HTMLElement, any>
 const vResizeH = resizeH as Directive<HTMLElement, any>
 const ns = useNamespace('b-page')
-const { belonging_area, bridge_scale } = useDict(props.dicts || [])
-const deptOptions = ref<Array<any>>([])
+const { warn_notice_sign, warn_notice_item } = useDict(props.dicts || [])
 const queryRef = ref<FormInstance>()
 const queryParams = ref<{ 
-  deptId: string | null,
+  templateName: string | null,
   pageNum: number,
   pageSize: number
 }>({ 
-  deptId: null,
+  templateName: null,
   pageNum: 1, 
   pageSize: 10,
 })
@@ -211,19 +195,16 @@ const rowData = ref<TableData>()
 const addVisible = ref<boolean>(false)
 const addFormRef = ref<FormInstance>()
 const addFormData = ref<TableData>({
-  deptId: null,
-  deptName: null,
-  bridgeScale: null,
-  structureList: null,
-  userList: null,
   templateId: null,
   templateName: null,
-  content: null
+  sign: null,
+  content: null,
+  createName: null,
+  createTime: null
 })
 const addFormRules = ref<FormRules>({
-  deptId: [{ required: true, message: '请选择所属部门', trigger: 'change' }],
-  bridgeScale: [{ required: true, message: '请选择结构物名称', trigger: 'change' }],
-  templateId: [{ required: true, message: '请选择选择模板', trigger: 'change' }],
+  templateName: [{ required: true, message: '请输入模板名称', trigger: 'blur' }],
+  sign: [{ required: true, message: '请选择签名', trigger: 'change' }],
   content: [{ required: true, message: '请输入模板内容', trigger: 'blur' }],
   ...props.fields.reduce((acc: FormRules, field: Field) => {
     if (field.isRequired) {
@@ -232,15 +213,17 @@ const addFormRules = ref<FormRules>({
     return acc
   }, {} as FormRules),
 })
-const contactName = (userList: Array<any> | null | undefined) => {
-  if (!userList) return ''
-  return userList.map((item: any) => item.nickName).join('、') || ''
+
+const handleInsert = (item: string) => {
+  console.log(item)
+  const content = document.getElementById('content') as HTMLTextAreaElement
+  if (content) {
+    const startText = addFormData.value.content?.slice(0, content.selectionStart) || ''
+    const endText = addFormData.value.content?.slice(content.selectionEnd) || ''
+    addFormData.value.content = startText + item + endText
+  }
 }
 
-const structureName = (structureList: Array<any> | null | undefined) => {
-  if (!structureList) return ''
-  return structureList.map((item: any) => item.structureName).join('、') || ''
-}
 
 const handleSearch = () => {
   queryParams.value.pageNum = 1
@@ -260,7 +243,7 @@ const handleReset = () => {
   }
 }
 const handleDelete = (row: TableData) => {
-  ElMessageBox.confirm('确定删除该推送配置吗？', '提示', {
+  ElMessageBox.confirm('确定删除预警该推送配置吗？', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning',
@@ -322,9 +305,7 @@ const handleSubmit = () => {
     }
   })
 }
-const handleExport = () => {
-  emits('export', queryParams.value)
-}
+
 const handlePageChange = (page: number, pageSize: number) => {
   queryParams.value.pageNum = page
   queryParams.value.pageSize = pageSize
@@ -333,14 +314,6 @@ const handlePageChange = (page: number, pageSize: number) => {
   } else {
     getBridgeList()
   }
-}
-
-const getDeptOptions = () => {
-  deptApi().then((res: any) => {
-    if (res.code === 200) {
-      deptOptions.value = handleTree(res.data, 'deptId')
-    }
-  })
 }
 
 // 数据接收，如果有传入的tableData 则使用传入的数据，否则请求接口获取数据
@@ -357,5 +330,4 @@ const getBridgeList = async () => {
   }
 }
 getBridgeList()
-getDeptOptions()
 </script>

@@ -3,7 +3,7 @@ import { request } from '../../../../../utils/request'
 
 export const listApi = (params: any) => {
   return request({
-    url: 'basics/alarm/warnNoticeConfig/list',
+    url: 'basics/alarm/warnNoticeTemplate/list',
     method: 'get',
     params
   })
@@ -11,7 +11,7 @@ export const listApi = (params: any) => {
 
 export const addApi = (data: any) => {
   return request({
-    url: '/basics/structure/bridgeInfo',
+    url: 'basics/alarm/warnNoticeTemplate',
     method: 'post',
     data
   })
@@ -19,22 +19,15 @@ export const addApi = (data: any) => {
 
 export const delApi = (id: string) => {
   return request({
-    url: '/basics/structure/bridgeInfo/' + id,
+    url: 'basics/alarm/warnNoticeTemplate/' + id,
     method: 'delete'
   })
 }
 
 export const editApi = (data: any) => {
   return request({
-    url: '/basics/structure/bridgeInfo',
+    url: 'basics/alarm/warnNoticeTemplate',
     method: 'put',
     data
-  })
-}
-
-export const deptApi = () => {
-  return request({
-    url: '/system/dept/list',
-    method: 'get'
   })
 }
