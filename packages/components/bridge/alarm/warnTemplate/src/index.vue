@@ -2,7 +2,7 @@
   <div :class="ns.b()">
     <div :class="ns.b('header')">
       <el-form :class="ns.e('form')" ref="queryRef" :model="queryParams" :inline="true">
-        <el-form-item label="模板名称" prop="templateName">
+        <el-form-item label="结构物类型" prop="templateName">
           <el-input v-model="queryParams.templateName" placeholder="请输入模板名称" clearable />
         </el-form-item>
         <el-form-item v-for="field in fields" :key="field.prop" :label="field.label" :prop="field.prop">
@@ -215,7 +215,6 @@ const addFormRules = ref<FormRules>({
 })
 
 const handleInsert = (item: string) => {
-  console.log(item)
   const content = document.getElementById('content') as HTMLTextAreaElement
   if (content) {
     const startText = addFormData.value.content?.slice(0, content.selectionStart) || ''

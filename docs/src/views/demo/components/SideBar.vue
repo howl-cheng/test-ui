@@ -25,11 +25,11 @@ const sidebarList = [
   },
   {
     id: 'bridge',
-    title: '桥梁平台',
+    title: '桥梁3.0',
     children: [
       {
         id: 'bridge/structure',
-        title: '桥梁基础信息',
+        title: '结构物管理',
         children: [
           {id: 'bridge/structure/bridgeInfo', title: '桥梁基础信息'},
           {id: 'bridge/structure/roadInfo', title: '道路基础信息'},
