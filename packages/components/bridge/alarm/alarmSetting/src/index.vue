@@ -12,6 +12,16 @@
             <el-option v-for="item in structureList" :key="item.structureId" :label="item.structureName" :value="item.structureId" />
           </el-select>
         </el-form-item>
+        <el-form-item label="测点类型" prop="tagTypeId">
+          <el-select v-model="queryParams.tagTypeId" placeholder="请选择测点类型" clearable>
+            <el-option v-for="dict in tagTypeList" :key="dict.tagTypeId" :label="dict.tagTypeName" :value="dict.tagTypeId"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="数值类型" prop="valueType">
+          <el-select v-model="queryParams.valueType" placeholder="请选择数值类型" clearable>
+            <el-option v-for="item in tag_value_type" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
         <el-form-item v-for="field in fields" :key="field.prop" :label="field.label" :prop="field.prop">
           <template v-if="field.type === 'select' && field.isSearch">
             <el-select v-model="queryParams[field.prop as keyof typeof queryParams]" :placeholder="`请选择${field.label}`" clearable>
@@ -30,11 +40,12 @@
     </div>
     <div :class="ns.b('content')" v-resizeH="true">
       <div :class="ns.b('content-operation')">
-        <el-button>批量开关</el-button>
-        <el-button>全选开关</el-button>
+        <el-button @click="switchAll('batch')" :disabled="selectIds.length === 0">批量开关</el-button>
+        <el-button @click="switchAll('all')">全选开关</el-button>
       </div>
       <div :class="ns.b('content-table')">
-        <el-table :data="tableList" style="width: 100%; height: calc(100% - 0.5rem)" empty-text="暂无数据">
+        <el-table :data="tableList" style="width: 100%; height: calc(100% - 0.5rem)" empty-text="暂无数据" @selection-change="handleSelectionChange">
+          <el-table-column type="selection" width="55" align="center" />
           <el-table-column prop="structureName" label="结构物名称" align="center"/>
           <el-table-column prop="structureType" label="结构物类型" align="center">
             <template #default="scope">
@@ -57,6 +68,7 @@
                 inactive-text="关"
                 active-value="0"
                 inactive-value="1"
+                @change="changeAlarmFlag(scope.row)"
               />
             </template>
           </el-table-column>
@@ -92,17 +104,23 @@
           <el-switch v-model="numFormData.alarmFlag" inline-prompt active-text="开" inactive-text="关" active-value="0" inactive-value="1" />
         </el-form-item>
         <el-divider>限值配置</el-divider>
-        <el-button type="primary" icon="Plus" @click="handleAddNumberConfig">新增</el-button>
-        <el-table :data="numFormData.numberValueList || []" ref="tableRef">
+        <el-button type="primary" icon="Plus" @click="addNumberConfig">新增</el-button> 
+        <el-table :data="filteredNumberList" ref="tableRef">
           <el-table-column label="报警级别" align="center" prop="alarmLevel">
             <template #header>
               <span>报警级别</span>
               <span style="color: red">*</span>
             </template>
             <template #default="scope">
-              <el-select v-model="scope.row.alarmLevel" placeholder="请选择报警级别" clearable :disabled="scope.row.alarmValueFlag === '1'">
-                <el-option v-for="dict in alarm_level" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
-              </el-select>
+              <el-form-item
+                :prop="'numberValueList.' + scope.$index + '.alarmLevel'"
+                :rules="scope.row.alarmValueFlag === '1' ? [] : numFormRules.alarmLevel"
+                :inline-message="true"
+              >
+                <el-select v-model="scope.row.alarmLevel" placeholder="请选择报警级别" clearable :disabled="scope.row.alarmValueFlag === '1'">
+                  <el-option v-for="dict in alarm_level" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
+                </el-select>
+              </el-form-item>
             </template>
           </el-table-column>
           <el-table-column label="报警值" align="center" prop="alarmValue">
@@ -111,8 +129,14 @@
               <span style="color: red">*</span>
             </template>
             <template #default="scope">
-              <el-input v-model="scope.row.alarmValue" placeholder="请输入报警值" clearable :disabled="scope.row.alarmValueFlag === '1'"></el-input>
-            </template>
+              <el-form-item
+                :prop="'numberValueList.' + scope.$index + '.alarmValue'"
+                :rules="scope.row.alarmValueFlag === '1' ? [] : numFormRules.alarmValue"
+                :inline-message="true"
+              >
+                <el-input v-model="scope.row.alarmValue" placeholder="请输入报警值" clearable :disabled="scope.row.alarmValueFlag === '1'"></el-input>
+              </el-form-item>
+              </template>
           </el-table-column>
           <el-table-column label="是否开启" align="center" prop="alarmValueFlag">
             <template #header>
@@ -126,7 +150,7 @@
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template #default="scope">
               <el-tooltip content="删除" placement="top">
-                <el-button circle icon="Delete"></el-button>
+                <el-button circle icon="Delete" @click="deleteNumberConfig(scope.row, scope.$index)"></el-button>
               </el-tooltip>
             </template>
           </el-table-column>
@@ -137,18 +161,25 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button type="primary" @click="handleSubmit('num')">确定</el-button>
         <el-button @click="analogVisible = false">取消</el-button>
       </template>
     </el-dialog>
     <!-- 模拟量 -->
     <el-dialog v-model="analogVisible" title="模拟量配置" width="40%" destroy-on-close>
-      <el-form :class="ns.e('form')" ref="analogFormRef" :model="analogFormData" :inline="true" label-width="auto">
-       
-      </el-form>
+      <el-form :class="ns.e('form')" ref="analogFormRef" :model="analogFormData" :inline="true" label-width="auto"></el-form>
       <template #footer>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button type="primary" @click="handleSubmit('analog')">确定</el-button>
         <el-button @click="analogVisible = false">取消</el-button>
+      </template>
+    </el-dialog>
+    <!-- 批量开关 -->
+    <el-dialog v-model="switchVisible" :title="switchTitle" width="400" destroy-on-close>
+      <label>操作类型：</label>
+      <el-switch v-model="switchAlarmFlag" inline-prompt active-text="开" inactive-text="关" active-value="0" inactive-value="1" />
+      <template #footer>
+        <el-button type="primary" @click="switchSubmit()">确定</el-button>
+        <el-button @click="switchVisible = false">取消</el-button>
       </template>
     </el-dialog>
   </div>
@@ -162,12 +193,12 @@
 import HDicts from '../../../../basis/dicts'
 import { useNamespace, useDict } from "../../../../../hooks"
 import { hasPermi, resizeH } from "../../../../../directive"
-import { listApi, listStructureApi, numberDetailsApi, analogDetailsApi } from './api'
-import type { NumberDetails, TableData, Field } from './type'
-import { ref, } from 'vue'
+import { listApi, listStructureApi, numberDetailsApi, analogDetailsApi, settingNumberApi, listTagTypeApi, multiSwitchAlarmApi, allSwitchAlarmApi} from './api'
+import type { NumberDetails, TableData, Field, FormRules } from './type'
+import { ref, computed } from 'vue'
 import type { Directive } from 'vue'
 import type { FormInstance } from "element-plus"
-// import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 
 
 const props = withDefaults(defineProps<{
@@ -192,36 +223,116 @@ const queryRef = ref<FormInstance>()
 const queryParams = ref<{
   structureId: string | null,
   structureType: string | null,
+  tagTypeId: string | null,
+  valueType: string | null,
   pageNum: number,
   pageSize: number
 }>({ 
   structureId: null,
   structureType: null,
+  tagTypeId: null,
+  valueType: null,
   pageNum: 1,
   pageSize: 10,
 })
 const structureList = ref<Array<any>>([])
+const tagTypeList = ref<Array<any>>([])
 const tableList = ref<Array<TableData>>([])
 const total = ref<number>(0)
+const selectIds = ref<string[]>([])
 
 const numVisible = ref<boolean>(false)
 const numTitle = ref<string>('模拟量配置')
 const numFormRef = ref<FormInstance>()
 const numFormData = ref<Partial<NumberDetails>>({})
-
+const numFormRules = ref<FormRules>({
+  alarmLevel: [{ required: true, message: '报警级别不能为空', trigger: 'change' }],
+  alarmValue: [{ required: true, message: '报警值不能为空', trigger: 'blur' }]
+})
 const analogVisible = ref<boolean>(false)
 const analogFormRef = ref<FormInstance>()
 const analogFormData = ref({})
 
+const switchVisible = ref<boolean>(false)
+const switchTitle = ref<string>('全选开关')
+const switchAlarmFlag = ref<string>('1')
+
 const rowData = ref<TableData>()
 const handleType = ref<string>('view')
 
-const handleAddNumberConfig = () => {
-  numFormData.value.numberValueList?.push({
-    alarmLevel: null,
-    alarmValue: null,
-    alarmValueFlag: null,
+const filteredNumberList = computed(() => {
+  return numFormData.value.numberValueList?.filter((item: any) => item.delFlag !== '2') || []
+})
+const handleSelectionChange = (selection: Array<TableData>) => {
+  selectIds.value = selection.map((item: TableData) => item.tagId as string)
+}
+
+const switchAll = (type: string) => {
+  switchTitle.value = type === 'batch' ? '批量开关' : '全选开关'
+  switchVisible.value = true
+}
+const switchSubmit = () => {
+  if (switchTitle.value === '批量开关') {
+    multiSwitchAlarmApi({ tagIds: selectIds.value, alarmFlag: switchAlarmFlag.value}).then((res: any) => {
+      if (res.code === 200) {
+        ElMessage.success('批量开关成功')
+        switchVisible.value = false
+        getList()
+      }
+    })
+  } else {
+    allSwitchAlarmApi({
+      dto: {
+        ...queryParams.value,
+      },
+      alarmFlag: switchAlarmFlag.value
+    }).then((res: any) => {
+      if (res.code === 200) {
+        ElMessage.success('全选开关成功')
+        switchVisible.value = false
+        getList()
+      }
+    })
+  }
+}
+const changeAlarmFlag = (row: TableData) => {
+  let str = row.alarmFlag === '0' ? '开启' : '关闭'
+  ElMessageBox.confirm(`确定要${str}报警吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(() => {
+    multiSwitchAlarmApi({ tagIds: [row.tagId], alarmFlag: row.alarmFlag}).then((res: any) => {
+      if (res.code === 200) {
+        ElMessage.success(`${str}报警成功`)
+      } else {
+        ElMessage.error(`${str}报警失败`)
+        row.alarmFlag = row.alarmFlag === '0' ? '1' : '0'
+      }
+    }).catch(() => {
+      row.alarmFlag = row.alarmFlag === '0' ? '1' : '0'
+    })
+  }).catch(() => {
+    row.alarmFlag = row.alarmFlag === '0' ? '1' : '0'
   })
+}
+
+
+const addNumberConfig = () => {
+  numFormData.value.numberValueList?.push({
+    tagId: numFormData.value.tagId,
+    alarmLevel: '',
+    alarmValue: '',
+    alarmValueFlag: '1',
+    delFlag: '0'
+  })
+}
+const deleteNumberConfig = (row: any, index: number) => {
+  if (row.settingId) {
+    row.delFlag = '2'
+  } else {
+    numFormData.value.numberValueList?.splice(index, 1)
+  }
 }
 
 const structureTypeChange = (val: string) => {
@@ -231,13 +342,19 @@ const structureTypeChange = (val: string) => {
     }
   })
 }
-
+const getTagTypeList = () => {
+  listTagTypeApi().then((res: any) => {
+    if (res.code === 200) {
+      tagTypeList.value = res.rows || []
+    }
+  })
+}
 const handleSearch = () => {
   queryParams.value.pageNum = 1
   if (props.methods.includes('search')) {
     emits('search', queryParams.value)
   } else {
-    getBridgeList()
+    getList()
   }
 }
 const handleReset = () => {
@@ -246,7 +363,7 @@ const handleReset = () => {
   if (props.methods.includes('reset')) {
     emits('reset')
   } else {
-    getBridgeList()
+    getList()
   }
 }
 const handleView = (row: TableData) => {
@@ -289,12 +406,25 @@ const getAnalogDetails = (row: TableData) => {
   })
 }
 
-const handleSubmit = () => {
-  analogFormRef.value?.validate((valid: boolean) => {
-    if (valid) {
-      console.log(numFormData.value)
-    }
-  })
+const handleSubmit = (type: string) => {
+  if (type === 'num') {
+    numFormRef.value?.validate((valid: boolean) => {
+      if (valid) {
+        settingNumberApi(numFormData.value).then((res: any) => {
+          if (res.code === 200) {
+            getList()
+            numVisible.value = false
+          }
+        })
+      }
+    })
+  } else {
+    analogFormRef.value?.validate((valid: boolean) => {
+      if (valid) {
+        console.log(analogFormData.value)
+      }
+    })
+  }
 }
 
 const handlePageChange = (page: number, pageSize: number) => {
@@ -303,12 +433,12 @@ const handlePageChange = (page: number, pageSize: number) => {
   if (props.methods.includes('pageChange')) {
     emits('pageChange', queryParams.value)
   } else {
-    getBridgeList()
+    getList()
   }
 }
 
 // 数据接收，如果有传入的tableData 则使用传入的数据，否则请求接口获取数据
-const getBridgeList = async () => {
+const getList = async () => {
   if (props.tableData.length > 0) {
     tableList.value = props.tableData
     total.value = props.total
@@ -320,5 +450,6 @@ const getBridgeList = async () => {
     }
   }
 }
-getBridgeList()
+getList()
+getTagTypeList()
 </script>

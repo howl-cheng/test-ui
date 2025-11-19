@@ -39,3 +39,8 @@ export interface Field {
   isSearch: boolean
   options: Array<any>
 }
+
+export interface FormRules {
+  alarmLevel: Array<any>
+  alarmValue: Array<any>
+}

@@ -22,6 +22,29 @@ export function analogDetailsApi(tagId: string) {
     method: 'get'
   })
 }
+
+export function settingNumberApi(data: any) {
+  return request({
+    url: 'basics/alarm/alarmSetting/settingNumber',
+    method: 'put',
+    data: data
+  })
+}
+
+export function multiSwitchAlarmApi(data: any) {
+  return request({
+    url: 'basics/alarm/alarmSetting/batchSwitch',
+    method: 'post',
+    data: data
+  })
+}
+export function allSwitchAlarmApi(data: any) {
+  return request({
+    url: 'basics/alarm/alarmSetting/allSwitch',
+    method: 'post',
+    data: data
+  })
+}
 export function listStructureApi(query: any) {
   return request({
     url: '/basics/structure/structureInfo/list',
@@ -30,3 +53,9 @@ export function listStructureApi(query: any) {
   })
 }
 
+export function listTagTypeApi() {
+  return request({
+    url: '/basics/device/tagType/list',
+    method: 'get',
+  })
+}
