@@ -144,7 +144,7 @@
               <span style="color: red">*</span>
             </template>
             <template #default="scope">
-              <el-switch v-model="scope.row.alarmValueFlag" inline-prompt active-text="×" inactive-text="√" active-value="0" inactive-value="1" />
+              <el-switch v-model="scope.row.alarmValueFlag" inline-prompt active-text="开" inactive-text="关" active-value="0" inactive-value="1" />
             </template>
           </el-table-column>
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width">

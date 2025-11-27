@@ -61,44 +61,30 @@ console.log(permissions) // ['user:add', 'user:edit', ...]
 ### 方法一：通过插件方式全局安装所有自定义指令（推荐）
 
 ```javascript
-import { createApp } from 'vue'
 import { directive, setPermissions } from 'hny-ui'
-import App from './App.vue'
 
-const app = createApp(App)
-
-// 1. 设置用户权限列表（通常在登录后获取）
 setPermissions(['user:add', 'user:edit', 'user:delete'])
 
-// 2. 安装指令
 app.use(directive)
 
-app.mount('#app')
 ```
 
 ### 方法二：单独引入并注册，组件库组件内部已引入并注册， 除非你单独需要使用这个自定义指令，否侧是不需要注册的，
 
 ```javascript
-import { createApp } from 'vue'
 import { hasPermi, setPermissions } from 'hny-ui'
-import App from './App.vue'
 
-const app = createApp(App)
-
-// 设置权限
 setPermissions(['user:add', 'user:edit', 'user:delete'])
 
-// 单独注册指令
 app.directive('hasPermi', hasPermi)
 
-app.mount('#app')
 ```
 
 ## 使用示例
 
 ### 基础用法
 
-```vue
+```html
 <template>
   <div>
     <!-- 单个权限判断 -->
@@ -120,11 +106,10 @@ app.mount('#app')
 ```javascript
 import { setPermissions } from 'hny-ui'
 
-// 设置为超级管理员
 setPermissions(['*:*:*'])
 ```
 
-```vue
+```html
 <template>
   <!-- 即使没有指定权限，超级管理员也能看到 -->
   <el-button v-hasPermi="['system:admin']">系统管理</el-button>
@@ -133,7 +118,7 @@ setPermissions(['*:*:*'])
 
 ### 在表格操作列中使用
 
-```vue
+```javascript
 <template>
   <el-table :data="userList">
     <el-table-column label="操作" width="200">
@@ -161,7 +146,7 @@ setPermissions(['*:*:*'])
 
 ### 动态权限更新
 
-```vue
+```javascript
 <template>
   <div>
     <el-button v-hasPermi="['user:add']">添加用户</el-button>

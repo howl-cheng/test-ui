@@ -21,6 +21,7 @@ const sidebarList = [
     title: '基础组件',
     children: [
       {id: 'basis/button', title: '按钮'},
+      {id: 'basis/dicts', title: '字典'},
     ]
   },
   {
@@ -41,6 +42,7 @@ const sidebarList = [
         children: [
           {id: 'bridge/alarm/warnConfig', title: '预警推送配置'},
           {id: 'bridge/alarm/warnTemplate', title: '预警推送模板'},
+          {id: 'bridge/alarm/alarmSetting', title: '报警设置'},
         ]
       }
     ]

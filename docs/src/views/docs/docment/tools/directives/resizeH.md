@@ -104,10 +104,3 @@ const showSearch = ref(true)
 const tableData = ref([...])
 </script>
 ```
-
-## 注意事项
-
-- 指令会自动查找当前元素的前一个兄弟元素来计算高度
-- 如果找不到前一个兄弟元素，会输出警告并将高度设置为 `100%`
-- 指令会在组件卸载时自动清理 ResizeObserver，无需手动处理
-

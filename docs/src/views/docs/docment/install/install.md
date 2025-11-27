@@ -1,84 +1,31 @@
 # 安装
 
-本文档将指导你如何在项目中安装和使用 hny-ui 组件库。
-
-## 📦 安装步骤
-
-### 1. 安装 hny-ui
-
-使用你喜欢的包管理器安装 hny-ui：
+### 安装 hny-ui
 
 ```bash
-# 使用 npm
 npm install hny-ui
-
-# 使用 pnpm（推荐）
-pnpm add hny-ui
-
-# 使用 yarn
-yarn add hny-ui
 ```
 
-### 2. 安装依赖
-
-hny-ui 依赖于以下包，请确保你的项目中已安装：
-
-```bash
-# 安装 Vue 3（如果还没有）
-npm install vue@^3.3.0
-
-# 安装 Element Plus（必需）
-npm install element-plus@^2.11.5
-```
-
-或者使用 pnpm：
-
-```bash
-pnpm add vue@^3.3.0 element-plus@^2.11.5
-```
-
-## 🚀 使用方式
-
-### 方式一：完整导入（推荐用于快速开始）
+### 完整导入
 
 在 `main.js` 或 `main.ts` 中：
 
 ```javascript
-import { createApp } from 'vue'
-import App from './App.vue'
-import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
-import hnyUI from 'hny-ui'
+import HnyUI from 'hny-ui'
 import 'hny-ui/styles'
 
-const app = createApp(App)
-app.use(ElementPlus)
-app.use(hnyUI)
-app.mount('#app')
+app.use(HnyUI)
 ```
 
-### 方式二：按需导入（推荐用于生产环境）
-
-#### 导入组件
+### 按需导入
 
 ```javascript
-import { createApp } from 'vue'
-import App from './App.vue'
-import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
-// 按需导入组件
-import { HbButton, HcHeader, HbBasicInfo, HbStructureType } from 'hny-ui'
-// 导入样式
+import { HbButton, HcHeader, HbBasicInfo } from 'hny-ui'
 import 'hny-ui/styles'
 
-const app = createApp(App)
-app.use(ElementPlus)
-// 注册组件
 app.component('HbButton', HbButton)
 app.component('HcHeader', HcHeader)
 app.component('HbBasicInfo', HbBasicInfo)
-app.component('HbStructureType', HbStructureType)
-app.mount('#app')
 ```
 这里只是示例作用，具体按需导入需要不建议在main.js挨个注册，最好统一封装注册组件方法，例如
 ```javascript
@@ -91,7 +38,7 @@ export default {
     })
   }
 ```
-#### 在组件中使用
+### 在组件中使用
 
 ```javascript
 <template>
@@ -100,13 +47,11 @@ export default {
     <hc-header title="页面标题" />
   </div>
 </template>
-
 <script setup>
-// 无需导入，组件已全局注册
 </script>
 ```
 
-### 方式三：单组件导入（最小化打包体积）
+### 单组件导入
 
 在需要的组件中直接导入：
 
@@ -119,7 +64,6 @@ export default {
 
 <script setup>
 import { HbButton } from 'hny-ui'
-import 'hny-ui/styles'
 
 const handleClick = () => {
   console.log('按钮被点击了')
@@ -127,7 +71,7 @@ const handleClick = () => {
 </script>
 ```
 
-### 方式四：从子包导入
+### 从子包导入
 
 你也可以从特定的子包导入：
 
@@ -145,21 +89,6 @@ import { useNamespace } from 'hny-ui/hooks'
 import 'hny-ui/styles'
 ```
 
-## 📝 TypeScript 支持
-
-hny-ui 完全支持 TypeScript，你可以直接使用：
-
-```typescript
-import { createApp } from 'vue'
-import type { App } from 'vue'
-import hnyUI from 'hny-ui'
-import 'hny-ui/styles'
-
-const app: App = createApp({})
-app.use(hnyUI)
-```
-
-类型定义会自动提供，无需额外配置。
 
 ## 🎨 样式导入
 
@@ -175,67 +104,7 @@ import 'hny-ui/styles'
 // 在构建工具中配置按需导入样式
 // 具体配置请参考下方"构建工具配置"
 ```
-## 🎨 按钮权限
 
-无论使用哪种导入方式，都需要进行权限列表的设置，具体配置请参考工具指令:v-hasPremi
-
-## ⚙️ 构建工具配置
-
-### Vite 配置
-
-如果你使用 Vite，可以在 `vite.config.js` 或 `vite.config.ts` 中配置：
-
-```javascript
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-
-export default defineConfig({
-  plugins: [vue()],
-  // 其他配置...
-})
-```
-
-### 按需导入优化
-
-为了减少打包体积，你可以使用插件实现真正的按需导入：
-
-```javascript
-// vite.config.js
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import Components from 'unplugin-vue-components/vite'
-
-export default defineConfig({
-  plugins: [
-    vue(),
-    Components({
-      resolvers: [
-        // 配置 hny-ui 组件自动导入
-        // 需要相应的插件支持
-      ]
-    })
-  ]
-})
-```
-
-## ✅ 验证安装
-
-安装完成后，你可以在组件中测试：
-
-```javascript
-<template>
-  <div>
-    <hb-button label="测试按钮" type="primary" />
-  </div>
-</template>
-
-<script setup>
-import { HbButton } from 'hny-ui'
-import 'hny-ui/styles'
-</script>
-```
-
-如果按钮正常显示，说明安装成功！
 
 ## 🔧 常见问题
 
@@ -260,10 +129,6 @@ A: 请确保：
 ### Q: 如何实现真正的按需导入？
 
 A: 推荐使用 `unplugin-vue-components` 插件，可以自动按需导入组件和样式。具体配置请参考相关插件文档。
-
-### Q: 支持 Vue 2 吗？
-
-A: 不支持。hny-ui 基于 Vue 3 开发，需要 Vue 3.3.0 或更高版本。
 
 ## 📚 下一步
 

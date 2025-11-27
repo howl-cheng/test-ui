@@ -33,7 +33,8 @@ const tabList = ref([
     { id: 'handleTree', path: 'utils/handleTree', title: 'handleTree(数组转树)' }
   ]},
   { id: 'hooks', title: 'hooks(钩子)', children: [
-    { id: 'useNamespace', path: 'hooks/useNamespace', title: 'useNamespace(命名空间)' }
+    { id: 'useNamespace', path: 'hooks/useNamespace', title: 'useNamespace(命名空间)' },
+    { id: 'useDict', path: 'hooks/useDict', title: 'useDict(字典)' }
   ]},
   { id: 'directive', title: 'directive（指令）', children: [
     { id: 'hasPermi', path: 'directives/hasPermi', title: 'v-hasPermi(按钮权限判断)' },

@@ -6,7 +6,7 @@
       <el-button type="info" size="small" circle icon="Setting" @click="handleSetting"></el-button>
     </div>
     <div ref="codeEditorRef" class="editor-content"></div>
-    <el-drawer v-model="settingVisible" title="桥梁详情" size="20%">
+    <el-drawer v-model="settingVisible" title="请求参数配置" size="20%">
       <el-form :model="settingParams" label-width="100px" label-position="top">
         <el-form-item label="timeout">
           <el-input v-model="settingParams.timeout" placeholder="请输入timeout"></el-input>

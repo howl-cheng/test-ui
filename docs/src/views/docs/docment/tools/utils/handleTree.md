@@ -105,94 +105,6 @@ const tree = handleTree(data)
 // ]
 ```
 
-### 自定义字段名
-
-```javascript
-// 使用自定义字段名
-const data = [
-  { code: '001', name: '根节点1', pid: null },
-  { code: '002', name: '根节点2', pid: null },
-  { code: '003', name: '子节点1', pid: '001' },
-  { code: '004', name: '子节点2', pid: '001' }
-]
-
-// 指定自定义字段名
-const tree = handleTree(data, 'code', 'pid', 'childList')
-
-// 输出结果:
-// [
-//   {
-//     code: '001',
-//     name: '根节点1',
-//     pid: null,
-//     childList: [
-//       { code: '003', name: '子节点1', pid: '001', childList: [] },
-//       { code: '004', name: '子节点2', pid: '001', childList: [] }
-//     ]
-//   },
-//   {
-//     code: '002',
-//     name: '根节点2',
-//     pid: null,
-//     childList: []
-//   }
-// ]
-```
-
-### 菜单树结构
-
-```javascript
-// 菜单数据
-const menuData = [
-  { menuId: 1, menuName: '首页', parentMenuId: 0 },
-  { menuId: 2, menuName: '系统管理', parentMenuId: 0 },
-  { menuId: 3, menuName: '用户管理', parentMenuId: 2 },
-  { menuId: 4, menuName: '角色管理', parentMenuId: 2 },
-  { menuId: 5, menuName: '权限管理', parentMenuId: 2 }
-]
-
-// 转换为菜单树
-const menuTree = handleTree(menuData, 'menuId', 'parentMenuId', 'children')
-
-// 输出结果:
-// [
-//   {
-//     menuId: 1,
-//     menuName: '首页',
-//     parentMenuId: 0,
-//     children: []
-//   },
-//   {
-//     menuId: 2,
-//     menuName: '系统管理',
-//     parentMenuId: 0,
-//     children: [
-//       { menuId: 3, menuName: '用户管理', parentMenuId: 2, children: [] },
-//       { menuId: 4, menuName: '角色管理', parentMenuId: 2, children: [] },
-//       { menuId: 5, menuName: '权限管理', parentMenuId: 2, children: [] }
-//     ]
-//   }
-// ]
-```
-
-### 部门组织架构
-
-```javascript
-// 部门数据
-const deptData = [
-  { deptId: 1, deptName: '总公司', parentDeptId: null },
-  { deptId: 2, deptName: '技术部', parentDeptId: 1 },
-  { deptId: 3, deptName: '市场部', parentDeptId: 1 },
-  { deptId: 4, deptName: '前端组', parentDeptId: 2 },
-  { deptId: 5, deptName: '后端组', parentDeptId: 2 },
-  { deptId: 6, deptName: '销售组', parentDeptId: 3 }
-]
-
-const deptTree = handleTree(deptData, 'deptId', 'parentDeptId', 'children')
-
-// 生成的树形结构可用于渲染组织架构树组件
-```
-
 ## 源代码
 
 ```javascript
@@ -241,23 +153,4 @@ export function handleTree(data, id, parentId, children) {
 }
 ```
 
-## 常见问题
 
-### Q: 转换后的树形结构中没有子节点？
-
-A: 检查以下几点：
-- 确保数据的 `parentId` 值与对应节点的 `id` 值匹配
-- 确保根节点的 `parentId` 值在所有节点的 `id` 中不存在
-- 检查字段名是否正确（是否使用了自定义字段名）
-
-### Q: 如何处理 parentId 为 0 的根节点？
-
-A: `handleTree` 会自动将 `parentId` 为 `0` 的节点识别为根节点（因为它在 `nodeIds` 中找不到对应的节点）。如果你的根节点 `parentId` 是 `0`，确保数据中没有 `id` 为 `0` 的节点。
-
-### Q: 如何保留其他字段？
-
-A: `handleTree` 会保留原始数据对象的所有属性，包括除 `id`、`parentId` 和 `children` 之外的其他字段。
-
-## 相关函数
-
-- [parseTime](./timeParse) - 时间格式化函数
